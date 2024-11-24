@@ -1,20 +1,19 @@
 # Nice to Meet You!
 
-I'm Jonathan DeWitt, but you can call me Jon.
+Hi, I'm Jon!
 
-I'm a software engineer and artist rolled into one person. In 2020 I founded [Thunder Solutions](https://github.com/thunder-solutions) and began pursuing that full time in 2021. I'm passionate about constant learning, and I love to tinker with experimental ideas on the cutting edge.
+I'm a full stack software engineer with a particular interest in the front end. Having worked heavily with the native platform and all three major frameworks - Angular, Vue, and most of all React, I have a range of experience that has prompted me to explore beyond the boundaries of my day job.
 
-My OSS contributions include state management, accessibility, and WC with DSD. I've also begun venturing into the wilds of existing open source, actively engaging in discussions and PRs.
+For a couple years, that meant serving clients at my own company, where I could dictate the cutting edge technology we used in our stack, and build software I could be proud of. While the experience and freedom was fantastic for enriching my life and learning invaluable lessons, I chose to rejoin the workforce as an employee because client work was not free of its own challenges. That said, I still tinker in my business on the side, building in-house SaaS and passion projects.
 
-Recently, I've become a regular contributor to Medium, publishing tech articles such as:
+In my spare time, I also like to seek out conversations with industry leaders. I've had quite a few enlightening exchanges with folks like "Uncle Bob" and Jon Kern of the Agile Manifesto, Rich Harris of Svelte, Dan Abramov of React, Tab Atkins of Chrome and champion of CSS Flexbox and Grid, Lea Verou of Font Awesome, Alex Russell of Blink, and the list goes on. Whether I'm agreeing or challenging them, I always enjoy the conversation and I have learned a lot from this whole endeavor.
 
-- [SCAAR - Software Design Principles for CSS](https://levelup.gitconnected.com/scaar-software-design-principles-for-css-d503ab60672c)
-- [AIR - Naming CSS Color Variables](https://levelup.gitconnected.com/air-naming-css-color-variables-437cb4d261a6)
-- [Modern-Day Separation of Concerns](https://levelup.gitconnected.com/modern-day-separation-of-concerns-74e79ff87767)
-- [Mastering Presentation Components](https://medium.com/front-end-weekly/mastering-presentation-components-614e847efbce)
+Some of my recent accomplishments include:
 
-But that's all the boring stuff, what about me personally? I don't take myself too seriously. I'll try (and probably fail) to make you laugh, so just pity laugh if you want me to stop - fair warning.
+Published [Thunderous](https://thunderous.dev/), a library for authoring functional web components using signals.
 
-I love to talk about anime and music, play social games on Steam, but most of all, I like to host a good party to bring people together! In my free time, I like to do all the fun artist things across the whole multimedia realm - like digital drawing, animation, video, music production, and just whatever!
+Published [React-Shadow-Scope](https://www.npmjs.com/package/react-shadow-scope), a library for writing shadow DOM components in React.
 
-If the code or hobbies intrigue you, feel free to visit me on [Twitter](https://twitter.com/jon_dewitt_ts) or watch me code cool stuff live on [Twitch](https://www.twitch.tv/code_e_pendant)!
+Wrote a successful [article about Agile](https://levelup.gitconnected.com/agile-sucks-8e504ed68ce7) for Git Connected's "Level Up Coding" publication.
+
+Developed [Collab Hour](https://collabhouragile.org/), a new Agile framework that strives for simplicity.
