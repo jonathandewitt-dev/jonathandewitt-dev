@@ -10,10 +10,10 @@ In my spare time, I also like to seek out conversations with industry leaders. I
 
 Some of my recent accomplishments include:
 
-Published [Thunderous](https://thunderous.dev/), a library for authoring functional web components using signals.
+- Published [Thunderous](https://thunderous.dev/), a library for authoring functional web components using signals.
 
-Published [React-Shadow-Scope](https://www.npmjs.com/package/react-shadow-scope), a library for writing shadow DOM components in React.
+- Published [React-Shadow-Scope](https://www.npmjs.com/package/react-shadow-scope), a library for writing shadow DOM components in React.
 
-Wrote a successful [article about Agile](https://levelup.gitconnected.com/agile-sucks-8e504ed68ce7) for Git Connected's "Level Up Coding" publication.
+- Wrote a successful [article about Agile](https://levelup.gitconnected.com/agile-sucks-8e504ed68ce7) for Git Connected's "Level Up Coding" publication.
 
-Developed [Collab Hour](https://collabhouragile.org/), a new Agile framework that strives for simplicity.
+- Developed [Collab Hour](https://collabhouragile.org/), a new Agile framework that strives for simplicity.
