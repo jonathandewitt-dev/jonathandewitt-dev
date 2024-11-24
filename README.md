@@ -6,7 +6,7 @@ I'm a full-stack software engineer with deep expertise in front-end development.
 
 For several years, I ran my own consultancy called Thunder Solutions, where I built cutting-edge applications and architected robust solutions for a diverse range of clients. This journey taught me invaluable lessons in leadership, technical strategy, and business. Currently, I channel that experience into my work as a software engineer, while continuing to develop in-house SaaS tools and passion projects.
 
-I thrive on exchanging ideas with industry leaders and have gained unique insights from engaging with figures like Rich Harris (Svelte), Dan Abramov (React), Justin Fagnani (Lit), and Tab Atkins (CSS). These conversations have not only deepened my understanding but have also inspired innovations in my own projects.
+I thrive on exchanging ideas with industry leaders and have gained unique insights from engaging with the engineers behind Lit, Svelte, React, and the w3c spec. These conversations have not only deepened my understanding but have also inspired innovations in my own projects.
 
 Some of my recent accomplishments include:
 
