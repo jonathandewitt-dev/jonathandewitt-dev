@@ -23,6 +23,7 @@ Here's some notable stuff I've accomplished! It's not a full list, but it's what
 - Published [React-Shadow-Scope](https://www.npmjs.com/package/react-shadow-scope), a library for writing shadow DOM components in React.
 - Wrote a popular [article about Agile](https://levelup.gitconnected.com/agile-sucks-8e504ed68ce7) for Git Connected's "Level Up Coding" publication.
 - Developed [Collab Hour](https://collabhouragile.org/), a lightweight Agile framework emphasizing simplicity and collaboration.
+- I run [Thunder Solutions](https://thunder.solutions), where I build SaaS applications and developer tools.
 
 <br><br>
 
