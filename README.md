@@ -52,7 +52,7 @@ I try to stay involved in the industry beyond my day job. A lot of that comes do
 
 **Jon Kern** (co-author, Agile Manifesto) is a friend and mentor of mine, and I owe a lot to him. He’s had a huge influence on how I think about engineering, teams, and the work itself.
 
-I've also exchanged ideas with engineers that shape the ecosystem, like React, Solid, Lit, Astro, 11ty, and the CSS Working Group, as well as others in the broader tech community.
+I've also had some great conversations with ecosystem-defining engineers behind projects like React, Solid, Svelte, Lit, Astro, 11ty, and W3C working groups, as well as others in the broader tech community. It’s not just about rubbing elbows, but about actively seeking diverse perspectives from people shaping the field. I want to learn and contribute beyond what’s possible in isolated bubbles. And thanks to this, I’ve learned more in the past few years than I could have in 20 otherwise.
 
 <br><br>
 
