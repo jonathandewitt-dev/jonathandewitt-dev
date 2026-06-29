@@ -31,7 +31,7 @@ Here's some notable stuff I've accomplished! It's not a full list, but it's what
 
 My strengths are still primarily in the front end, but I enjoy being able to work independently from UI down to infrastructure. "Fullstack" is a loaded term, so let me give you an honest breakdown:
 
-| Front End<br>🟩🟩🟩🟩🟩🟩<br>Principal | Back End<br>🟩🟩🟩🟩⬛⬛<br>Mid-Senior | Databases<br>🟩🟩🟩⬛⬛⬛<br>Mid-Level | Containers<br>🟩🟩🟩⬛⬛⬛<br>Mid-Level | Infrastructure<br>🟩🟩⬛⬛⬛⬛<br>Junior-Mid |
+| Front End<br>🟩🟩🟩🟩🟩🟩<br>Principal | Back End<br>🟩🟩🟩🟩🟩⬛<br>Senior | Databases<br>🟩🟩🟩🟩⬛⬛<br>Mid-Senior | Containers<br>🟩🟩🟩🟩⬛⬛<br>Mid-Senior | Infrastructure<br>🟩🟩🟩⬛⬛⬛<br>Mid-Level |
 |---|---|---|---|---|
 | _I’m comfortable across frameworks, understand their tradeoffs, and can dig into internals when needed._ | _I use multiple languages, but focus on architecture over language-specific tricks._ | _I can author well-written schemas and query them. I haven't done replication or sharding yet, but I see the value._ | _I love working with Docker, especially devcontainers. I "get" orchestration, but haven’t learned Kubernetes yet._ | _I can navigate AWS and stand up a web server on my own. But there's a lot more to learn and I'm having fun patching this gap a little at a time._ |
 
