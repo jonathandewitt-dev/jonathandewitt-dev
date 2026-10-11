@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  helpful-errors: true
+  type-fns: true
+minimumReleaseAgeExclude:
+  - thunderous-server@0.0.14

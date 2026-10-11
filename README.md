@@ -11,8 +11,6 @@ _**We shouldn't have to choose between standards and good DX! My mission is to m
 **Table of contents**  
 [What I do](#what-i-do) | [What I know](#what-i-know) | [Who I know](#who-i-know) | [Who I am](#who-i-am)
 
-> Nope, despite the emojis, AI did not write this! Yep, I did ask AI for help to polish it. But I assure you it's 100% authentic. 🙂
-
 <br><br>
 
 ## 🛠️ What I Do

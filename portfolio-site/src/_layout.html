@@ -1,0 +1,40 @@
+<!-- Since this file begins with an underscore, it will be excluded from the output. -->
+<!-- This markup will only be rendered if a page includes it with <?layout href="_layout.html"> -->
+<html>
+	<head>
+		<title>Jonathan DeWitt<script expr>title !== '' ? ` | ${title}` : ''</script></title>
+		<link rel="stylesheet" href="/global.css" />
+	</head>
+	<body>
+		<!-- This view element is used for CSR navigation, only this element will be replaced when navigating -->
+		<t-view id="main-content">
+			<x-page expr:prominent="pathname === '/'">
+				<h1 slot="header">
+					<script expr>
+						title === '' ? 'Home' : title;
+					</script>
+				</h1>
+
+				<nav slot="header">
+					<p>
+						<script expr>
+							breadcrumbs.map((crumb) => html`<x-crumb href="${crumb.pathname}">${crumb.name}</x-crumb>`);
+						</script>
+					</p>
+				</nav>
+
+				<!-- This is where page content is inserted when this layout is used -->
+				<slot></slot>
+			</x-page>
+		</t-view>
+
+		<script isomorphic src="/component-registry.ts"></script>
+
+		<script server>
+			import { getMeta } from 'thunderous-server';
+
+			// This makes some handy data available to the template, like breadcrumbs
+			export default getMeta();
+		</script>
+	</body>
+</html>
