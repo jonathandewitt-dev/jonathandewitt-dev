@@ -1,16 +1,19 @@
 <?layout href="../_layout.html">
 
-<div class="content">
-	<p>
-		You can find my company and projects here:
-	</p>
-	<ul>
-		<li><a href="https://thunder.solutions">Thunder Solutions</a> — my company.</li>
-		<li><a href="https://thunderous.dev/">Thunderous</a> — functional web components using signals.</li>
-		<li>
-			<a href="https://www.npmjs.com/package/react-shadow-scope">React-Shadow-Scope</a> — shadow DOM components in
-			React.
-		</li>
-		<li><a href="https://collabhouragile.org/">Collab Hour</a> — a lightweight Agile framework.</li>
-	</ul>
-</div>
+<x-content>
+	<p>You can find my company and projects here:</p>
+	<x-list>
+		<x-list-item><x-link href="https://thunder.solutions">Thunder Solutions</x-link> — my company.</x-list-item>
+		<x-list-item
+			><x-link href="https://thunderous.dev/">Thunderous</x-link> — functional web components using
+			signals.</x-list-item
+		>
+		<x-list-item>
+			<x-link href="https://www.npmjs.com/package/react-shadow-scope">React-Shadow-Scope</x-link> — shadow DOM
+			components in React.
+		</x-list-item>
+		<x-list-item
+			><x-link href="https://collabhouragile.org/">Collab Hour</x-link> — a lightweight Agile framework.</x-list-item
+		>
+	</x-list>
+</x-content>

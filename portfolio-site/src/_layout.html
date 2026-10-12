@@ -55,7 +55,11 @@
 				'/contact': 'Contact Me',
 			};
 			const heading = headings[meta.pathname] ?? meta.title;
-			export default { ...meta, title: meta.pathname === '/' ? '' : heading, heading };
+			export default {
+				...meta,
+				title: meta.pathname === '/' ? '' : heading,
+				heading,
+			};
 		</script>
 	</body>
 </html>

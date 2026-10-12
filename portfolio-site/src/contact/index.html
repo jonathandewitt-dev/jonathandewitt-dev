@@ -1,13 +1,19 @@
 <?layout href="../_layout.html">
 
-<div class="content">
+<x-content>
 	<p>Want to talk about developer tools, the web platform, or working together? Get in touch.</p>
-	<dl>
-		<dt>Email</dt>
-		<dd><a href="mailto:jon@jonathandewitt.dev">jon@jonathandewitt.dev</a></dd>
-		<dt>Location</dt>
-		<dd>Pittsburgh area</dd>
-		<dt>LinkedIn</dt>
-		<dd><a href="https://www.linkedin.com/in/jonathandewittus/">Jonathan DeWitt on LinkedIn</a></dd>
-	</dl>
-</div>
+	<x-description-list>
+		<x-description-item>
+			<span slot="term">Email</span>
+			<x-link href="mailto:jon@jonathandewitt.dev">jon@jonathandewitt.dev</x-link>
+		</x-description-item>
+		<x-description-item>
+			<span slot="term">Location</span>
+			Pittsburgh area
+		</x-description-item>
+		<x-description-item>
+			<span slot="term">LinkedIn</span>
+			<x-link href="https://www.linkedin.com/in/jonathandewittus/">Jonathan DeWitt on LinkedIn</x-link>
+		</x-description-item>
+	</x-description-list>
+</x-content>
