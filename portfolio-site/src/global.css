@@ -26,3 +26,23 @@ body {
 .content li + li {
 	margin-top: 0.75rem;
 }
+
+table, th, td {
+	color: inherit;
+	text-align: left;
+	vertical-align: top;
+	border: 1px solid;
+	padding: 0.5rem;
+	border-collapse: collapse;
+}
+
+th {
+	white-space: nowrap;
+}
+
+blockquote {
+	margin: 3rem 0 0 0;
+	padding-left: 1rem;
+	border-left: 0.25rem solid;
+	opacity: 0.5;
+}

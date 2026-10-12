@@ -15,19 +15,26 @@
 		<!-- This view element is used for CSR navigation, only this element will be replaced when navigating -->
 		<t-view id="main-content">
 			<x-page expr:prominent="pathname === '/'">
-				<h1 slot="header">
-					<script expr>
-						heading;
-					</script>
-				</h1>
+				<script expr>
+					breadcrumbs.length === 1
+						? html`
+								<hgroup slot="header">
+									<h1>${heading}</h1>
+									${breadcrumbs.length === 1 ? html`<h2>Engineering Leader & Product Innovator</h2>` : ''}
+								</hgroup>
+							`
+						: html`<h1 slot="header">${heading}</h1>`;
+				</script>
 
-				<nav slot="header">
-					<p>
-						<script expr>
-							breadcrumbs.map((crumb) => html`<x-crumb href="${crumb.pathname}">${crumb.name}</x-crumb>`);
-						</script>
-					</p>
-				</nav>
+				<script expr>
+					breadcrumbs.length > 1
+						? html`
+								<nav slot="header">
+									<p>${breadcrumbs.map((crumb) => html`<x-crumb href="${crumb.pathname}">${crumb.name}</x-crumb>`)}</p>
+								</nav>
+							`
+						: '';
+				</script>
 
 				<!-- This is where page content is inserted when this layout is used -->
 				<slot></slot>
@@ -43,10 +50,9 @@
 			const meta = getMeta();
 			const headings = {
 				'/': 'Jonathan DeWitt',
-				'/work': 'What I do',
-				'/experience': 'What I know',
-				'/about': 'About Jon',
-				'/about/contact': 'Find my work online',
+				'/about': 'About Me',
+				'/work': 'My Work',
+				'/contact': 'Contact Me',
 			};
 			const heading = headings[meta.pathname] ?? meta.title;
 			export default { ...meta, title: meta.pathname === '/' ? '' : heading, heading };

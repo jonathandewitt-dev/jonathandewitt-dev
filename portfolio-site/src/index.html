@@ -1,26 +1,15 @@
 <?layout href="_layout.html">
 
-<x-feature href="/work" buttontext="Explore my work">
+<section class="content">
+	<h2>Hi, I'm Jon! 👋</h2>
+	<p>
+		This is my personal portfolio site, where I share my work, experience, and engineering philosophy.
+	</p>
+</section>
+
+<x-feature href="/about#what-i-do" buttontext="Explore my work">
 	<p>We shouldn't have to choose between standards and good DX.</p>
 </x-feature>
-
-<section class="content">
-	<h2>Hi, I'm Jon!</h2>
-	<p>
-		I'm Jonathan DeWitt. I'm passionate about developer experience and the native web platform, and my mission is to
-		bridge the gap between them.
-	</p>
-	<p>
-		Tech that doesn't interfere and makes work easier is much more appealing to adopt. I build tools and explore ideas
-		that bring those two things together.
-	</p>
-	<h2>Get to know me</h2>
-	<ul>
-		<li><a href="/work">What I do</a> — developer tools, writing, and a simpler approach to Agile.</li>
-		<li><a href="/experience">What I know</a> — my strengths, my stacks, and what I'm still learning.</li>
-		<li><a href="/about">Who I am</a> — curiosity, maintainability, and the people I learn from.</li>
-	</ul>
-</section>
 
 <script isomorphic>
 	import { Feature } from './components/feature';

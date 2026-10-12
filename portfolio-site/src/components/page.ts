@@ -11,10 +11,9 @@ export const Page = customElement(({ adoptStyleSheet }) => {
 				<slot name="header"></slot>
 				<nav class="header-nav" aria-label="Main navigation">
 					<a href="/">Home</a>
-					<a href="/work">What I do</a>
-					<a href="/experience">What I know</a>
-					<a href="/about">About Jon</a>
-					<a href="/about/contact">Find my work</a>
+					<a href="/about">About Me</a>
+					<a href="/work">My Work</a>
+					<a href="/contact">Contact Me</a>
 				</nav>
 			</header>
 			<main>
@@ -22,9 +21,8 @@ export const Page = customElement(({ adoptStyleSheet }) => {
 			</main>
 			<footer>
 				<nav class="footer-nav" aria-label="Footer navigation">
-					<a href="/">Home</a> | <a href="/work">What I do</a>
-					<a href="/experience">What I know</a>
-					<a href="/about">About Jon</a> | <a href="/about/contact">Find my work</a>
+					<a href="/">Home</a> | <a href="/about">About Me</a> | <a href="/work">My Work</a> |
+					<a href="/contact">Contact Me</a>
 				</nav>
 				<slot name="footer"></slot>
 				<small
