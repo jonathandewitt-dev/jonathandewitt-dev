@@ -1,9 +1,9 @@
 {
 	"name": "jonathan-dewitt",
 	"version": "1.0.0",
-	"description": "A demo to showcase Thunderous server capabilities.",
+	"description": "Jonathan DeWitt’s portfolio: developer tools, web standards, and engineering experience.",
 	"license": "ISC",
-	"author": "",
+	"author": "Jonathan DeWitt",
 	"type": "module",
 	"main": "index.js",
 	"scripts": {
@@ -27,7 +27,7 @@
 		"eslint": "^9.38.0",
 		"prettier": "^3.6.2",
 		"serve": "^14.2.5",
-		"thunderous-server": "0.0.14",
+		"thunderous-server": "0.0.17",
 		"tsx": "^4.20.6",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.46.2",

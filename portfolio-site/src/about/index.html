@@ -1,16 +1,47 @@
-<!-- Since this is named index.html, it will be the default page for the /about route. -->
 <?layout href="../_layout.html">
 
-<h2>
-	<script expr>
-		title;
-	</script>
-</h2>
-<p>
-	<script expr>
-		description;
-	</script>
-</p>
-
-<!-- <script server> tags also support files via the src attribute -->
-<script server src="./about-data.server.ts"></script>
+<div class="content">
+	<section>
+		<h2>Who I am</h2>
+		<p>
+			I tend to question abstractions instead of accepting them. If something feels off, I dig into it, sometimes to the
+			point of rebuilding parts of the stack just to understand the tradeoffs. That's led me through all the major UI
+			frameworks, each time reevaluating what actually holds up under real use.
+		</p>
+		<p>
+			I care a lot about long-term maintainability, mental models, and avoiding unnecessary complexity. I'm less
+			interested in following patterns because they're popular, and more interested in whether they're actually the best
+			direction in practice.
+		</p>
+		<p>
+			I find creative fulfillment in turning accepted approaches on their head and engineering completely unexplored
+			ideas. That curiosity leads me down rabbit holes that occasionally end with me building another solution to solve
+			whatever problem I found.
+		</p>
+	</section>
+	<section>
+		<h2>Who I know</h2>
+		<p>
+			I try to stay involved in the industry beyond my day job. A lot of that comes down to building relationships and
+			actually talking to the people shaping the space.
+		</p>
+		<p>
+			Jon Kern, co-author of the Agile Manifesto, is a friend and mentor of mine. He's had a huge influence on how I
+			think about engineering, teams, and the work itself.
+		</p>
+		<p>
+			I've also had the privilege of exchanging ideas with other co-authors and Agile leaders, including Robert “Uncle
+			Bob” Martin, Woody Zuill, Tim Ottinger, and Allen Holub.
+		</p>
+		<p>
+			I've had great conversations with engineers behind React, Angular, Vue, Solid, Svelte, Lit, Astro, 11ty, and W3C
+			working groups, as well as others in the broader tech community.
+		</p>
+		<p>
+			For me, it's about actively seeking diverse perspectives from people shaping the field. I want to learn and
+			contribute beyond what's possible in isolated bubbles. Thanks to that, I've learned more in the past few years
+			than I might have learned in decades otherwise.
+		</p>
+	</section>
+	<p><a href="/work">Explore what I'm building</a> or <a href="/about/contact">find my work online</a>.</p>
+</div>

@@ -31,7 +31,7 @@ const stylesheet = css`
 		text-align: center;
 		position: relative;
 		overflow: hidden;
-		padding: 2em 3em;
+		padding: clamp(1rem, 5vw, 4rem);
 		border-radius: 20px;
 		border: 1px solid var(--color-surface-2-2);
 		background:

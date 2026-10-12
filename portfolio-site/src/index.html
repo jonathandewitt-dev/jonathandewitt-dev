@@ -1,39 +1,28 @@
 <?layout href="_layout.html">
 
-<x-feature href="https://thunderous.dev" buttontext="Read the Docs">
-	<script expr>
-		// These <script expr> tags are evaluated in-place as expressions and replaced by the result.
-		html`<p>The ${stack} stack is dead simple and feels like there's no framework at all.</p>`;
-	</script>
+<x-feature href="/work" buttontext="Explore my work">
+	<p>We shouldn't have to choose between standards and good DX.</p>
 </x-feature>
 
-<script>
-	// This is ordinary client-only code.
-	console.log('Hello from the browser!');
-</script>
-
-<script type="module">
-	// This is also client-only code.
-	// Client-side modules are processed to vendorize NPM dependencies.
-	// There is no bundle step - modules are loaded via import maps.
-	console.log('Hello from a module!');
-</script>
+<section class="content">
+	<h2>Hi, I'm Jon!</h2>
+	<p>
+		I'm Jonathan DeWitt. I'm passionate about developer experience and the native web platform, and my mission is to
+		bridge the gap between them.
+	</p>
+	<p>
+		Tech that doesn't interfere and makes work easier is much more appealing to adopt. I build tools and explore ideas
+		that bring those two things together.
+	</p>
+	<h2>Get to know me</h2>
+	<ul>
+		<li><a href="/work">What I do</a> — developer tools, writing, and a simpler approach to Agile.</li>
+		<li><a href="/experience">What I know</a> — my strengths, my stacks, and what I'm still learning.</li>
+		<li><a href="/about">Who I am</a> — curiosity, maintainability, and the people I learn from.</li>
+	</ul>
+</section>
 
 <script isomorphic>
-	// This code runs on both the client and server.
-	// Isomorphic scripts are always modules.
-	// Since it runs on the client, it will also vendorize NPM dependencies.
 	import { Feature } from './components/feature';
-
-	// Thunderous components render declarative shadow DOM when defined on the server.
 	Feature.define('x-feature');
-</script>
-
-<script server>
-	// This code runs on the server only.
-	// Server scripts are always modules.
-	// Exported values are available in <script expr> tags.
-	export default {
-		stack: 'Thunderous',
-	};
 </script>

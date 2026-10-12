@@ -9,22 +9,27 @@ export const Page = customElement(({ adoptStyleSheet }) => {
 		<div class="page">
 			<header>
 				<slot name="header"></slot>
-				<nav class="header-nav">
+				<nav class="header-nav" aria-label="Main navigation">
 					<a href="/">Home</a>
-					<a href="/about">About Us</a>
-					<a href="/about/contact">Contact Us</a>
+					<a href="/work">What I do</a>
+					<a href="/experience">What I know</a>
+					<a href="/about">About Jon</a>
+					<a href="/about/contact">Find my work</a>
 				</nav>
 			</header>
 			<main>
 				<slot></slot>
 			</main>
 			<footer>
-				<nav class="footer-nav">
-					<a href="/">Home</a> | <a href="/about">About Us</a> | <a href="/about/contact">Contact Us</a>
+				<nav class="footer-nav" aria-label="Footer navigation">
+					<a href="/">Home</a> | <a href="/work">What I do</a>
+					<a href="/experience">What I know</a>
+					<a href="/about">About Jon</a> | <a href="/about/contact">Find my work</a>
 				</nav>
 				<slot name="footer"></slot>
 				<small
-					>&copy; ${new Date().getFullYear()} &mdash; Powered by <a href="https://thunderous.dev">Thunderous</a></small
+					>&copy; ${new Date().getFullYear()} Jonathan DeWitt &mdash; Powered by
+					<a href="https://thunderous.dev">Thunderous</a></small
 				>
 			</footer>
 		</div>

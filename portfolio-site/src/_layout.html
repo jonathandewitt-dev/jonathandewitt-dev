@@ -1,7 +1,13 @@
 <!-- Since this file begins with an underscore, it will be excluded from the output. -->
 <!-- This markup will only be rendered if a page includes it with <?layout href="_layout.html"> -->
-<html>
+<html lang="en">
 	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta
+			name="description"
+			content="Jonathan DeWitt (Jon) builds developer tools that bridge great developer experience and the native web platform. Explore his projects, experience, and engineering philosophy."
+		/>
 		<title>Jonathan DeWitt<script expr>title !== '' ? ` | ${title}` : ''</script></title>
 		<link rel="stylesheet" href="/global.css" />
 	</head>
@@ -11,7 +17,7 @@
 			<x-page expr:prominent="pathname === '/'">
 				<h1 slot="header">
 					<script expr>
-						title === '' ? 'Home' : title;
+						heading;
 					</script>
 				</h1>
 
@@ -34,7 +40,16 @@
 			import { getMeta } from 'thunderous-server';
 
 			// This makes some handy data available to the template, like breadcrumbs
-			export default getMeta();
+			const meta = getMeta();
+			const headings = {
+				'/': 'Jonathan DeWitt',
+				'/work': 'What I do',
+				'/experience': 'What I know',
+				'/about': 'About Jon',
+				'/about/contact': 'Find my work online',
+			};
+			const heading = headings[meta.pathname] ?? meta.title;
+			export default { ...meta, title: meta.pathname === '/' ? '' : heading, heading };
 		</script>
 	</body>
 </html>

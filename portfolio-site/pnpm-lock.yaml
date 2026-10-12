@@ -46,8 +46,8 @@ importers:
         specifier: ^14.2.5
         version: 14.2.6(supports-color@7.2.0)
       thunderous-server:
-        specifier: 0.0.14
-        version: 0.0.14(@types/node@24.19.2)(thunderous@2.4.6)(tsx@4.23.15)
+        specifier: 0.0.17
+        version: 0.0.17(@types/node@24.19.2)(thunderous@2.4.6)(tsx@4.23.15)
       tsx:
         specifier: ^4.20.6
         version: 4.23.15
@@ -1399,8 +1399,8 @@ packages:
     peerDependencies:
       thunderous: ^2.4.6
 
-  thunderous-server@0.0.14:
-    resolution: {integrity: sha512-gebZ2RBMh13NbaH+nNixWW6a7ujfDH81mlGPglE/a431dKKXkl0SuEMjocUc0icoE9OPjH17kQf3UWCts0BP/A==}
+  thunderous-server@0.0.17:
+    resolution: {integrity: sha512-7LeaWUAkENp2es3vwZsFMYk6fMu0gZEbatKaJdxoYOfdj5MPcEwBitKhcuiLLAl+JwCjqEsZXPnaacjhbJ5SHw==}
     hasBin: true
     peerDependencies:
       thunderous: '>=2.4.6'
@@ -2776,7 +2776,7 @@ snapshots:
     dependencies:
       thunderous: 2.4.6
 
-  thunderous-server@0.0.14(@types/node@24.19.2)(thunderous@2.4.6)(tsx@4.23.15):
+  thunderous-server@0.0.17(@types/node@24.19.2)(thunderous@2.4.6)(tsx@4.23.15):
     dependencies:
       chalk: 5.6.2
       emoji-space-shim: 0.1.7
