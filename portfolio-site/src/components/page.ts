@@ -177,7 +177,7 @@ const stylesheet = css`
 
 	header {
 		min-width: 0;
-		padding: 1em 1.5em 0;
+		padding: 0.5em 1.5em 0;
 	}
 	main {
 		min-width: 0;

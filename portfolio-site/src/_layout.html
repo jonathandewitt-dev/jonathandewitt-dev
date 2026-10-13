@@ -15,26 +15,30 @@
 		<!-- This view element is used for CSR navigation, only this element will be replaced when navigating -->
 		<t-view id="main-content">
 			<x-page expr:prominent="pathname === '/'">
-				<script expr>
-					breadcrumbs.length === 1
-						? html`
-								<hgroup slot="header">
-									<h1>${heading}</h1>
-									${breadcrumbs.length === 1 ? html`<h2>Engineering Leader & Product Innovator</h2>` : ''}
-								</hgroup>
-							`
-						: html`<h1 slot="header">${heading}</h1>`;
-				</script>
-
-				<script expr>
-					breadcrumbs.length > 1
-						? html`
-								<nav slot="header">
-									<p>${breadcrumbs.map((crumb) => html`<x-crumb href="${crumb.pathname}">${crumb.name}</x-crumb>`)}</p>
-								</nav>
-							`
-						: '';
-				</script>
+				<x-page-heading
+					slot="header"
+					expr:prominent="pathname === '/'"
+					expr:with-subtitle="pathname === '/'"
+					expr:with-breadcrumbs="breadcrumbs.length !== 1"
+				>
+					<script expr>
+						heading;
+					</script>
+					<script expr>
+						pathname === '/' ? html`<span slot="subtitle">Engineering Leader &amp; Product Innovator</span>` : '';
+					</script>
+					<script expr>
+						breadcrumbs.length > 1
+							? breadcrumbItems.map(
+									(crumb) => html`
+										<x-crumb slot="breadcrumbs" href="${crumb.pathname}" current="${crumb.current}">
+											${crumb.name}
+										</x-crumb>
+									`,
+								)
+							: '';
+					</script>
+				</x-page-heading>
 
 				<!-- This is where page content is inserted when this layout is used -->
 				<slot></slot>
@@ -59,6 +63,11 @@
 				...meta,
 				title: meta.pathname === '/' ? '' : heading,
 				heading,
+				breadcrumbItems: meta.breadcrumbs.map((crumb, index) => ({
+					...crumb,
+					name: index === meta.breadcrumbs.length - 1 ? heading : crumb.name,
+					current: index === meta.breadcrumbs.length - 1 ? 'page' : 'false',
+				})),
 			};
 		</script>
 	</body>
