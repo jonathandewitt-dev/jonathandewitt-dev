@@ -1,5 +1,6 @@
 import { View } from 'thunderous-csr';
 import { Page } from './components/page';
+import { OrbitNav } from './components/orbit-nav';
 import { ProjectList, ProjectItem } from './components/project-list';
 import { PageHeading } from './components/page-heading';
 import { Crumb } from './components/crumb';
@@ -13,6 +14,7 @@ import { DescriptionList, DescriptionItem } from './components/description-list'
 
 View.define('t-view');
 Page.define('x-page');
+OrbitNav.define('x-orbit-nav');
 PageHeading.define('x-page-heading');
 Crumb.define('x-crumb');
 Content.define('x-content');

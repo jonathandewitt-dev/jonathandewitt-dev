@@ -1,9 +1,10 @@
-import { customElement, html, css } from 'thunderous';
+import { customElement, html, css, derived } from 'thunderous';
 import { theme } from '../theme';
 
-export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
+export const Page = customElement(({ adoptStyleSheet, root, attrSignals, connectedCallback, disconnectedCallback }) => {
 	adoptStyleSheet(theme);
 	adoptStyleSheet(stylesheet);
+	const [prominent] = attrSignals['prominent'] ?? [() => null];
 
 	let cleanup = () => {};
 	connectedCallback(() => {
@@ -45,7 +46,7 @@ export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, d
 		<div class="page">
 			<header>
 				<slot name="header"></slot>
-				<nav class="header-nav desktop-nav" aria-label="Main navigation">${links()}</nav>
+				<x-orbit-nav class="desktop-nav" prominent="${derived(() => prominent() === null ? '' : null)}"></x-orbit-nav>
 				<details class="mobile-menu">
 					<summary><span aria-hidden="true">☰</span> Menu</summary>
 					<nav class="header-nav" aria-label="Main navigation">${links()}</nav>
