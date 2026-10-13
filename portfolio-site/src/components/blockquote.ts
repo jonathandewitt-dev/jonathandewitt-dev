@@ -12,7 +12,8 @@ const stylesheet = css`
 	blockquote {
 		margin: 3rem 0 0 0;
 		padding: 1.1rem 1.25rem;
-		/* Replaces a flat 50% opacity, which dimmed the text below comfortable reading contrast. */
+		/* Tinted rather than dimmed with opacity, which would drop the text below comfortable
+		   reading contrast. */
 		border-left: 2px solid color-mix(in srgb, var(--color-brand-1) 55%, transparent);
 		border-radius: 0 0.6rem 0.6rem 0;
 		background: linear-gradient(90deg, color-mix(in srgb, var(--color-brand-1) 8%, transparent), transparent 70%);

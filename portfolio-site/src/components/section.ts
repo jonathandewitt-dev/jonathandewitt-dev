@@ -5,7 +5,8 @@ export const Section = customElement(({ adoptStyleSheet }) => {
 	return html`<section><slot></slot></section>`;
 });
 
-/* Mirrors the copy styles in x-content for headings and paragraphs nested one level deeper. */
+/* Duplicates x-content's copy styles rather than sharing them. ::slotted() cannot reach past
+   direct children. */
 const stylesheet = css`
 	:host {
 		display: flow-root;

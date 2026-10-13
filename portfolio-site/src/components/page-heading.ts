@@ -35,11 +35,8 @@ const stylesheet = css`
 	hgroup {
 		display: contents;
 	}
-	/*
-	 * The headline is deliberately drawn at an extreme light weight. At display sizes a 200
-	 * reads as elegant rather than frail, and it sets up the contrast against the heavy,
-	 * tracked-out eyebrow above it.
-	 */
+	/* The extreme light weight is deliberate: at display sizes it reads as elegant rather than
+	   frail, and sets up the contrast against the heavy, tracked-out subtitle. */
 	h1 {
 		margin: 0;
 		max-width: 20ch;
@@ -55,10 +52,8 @@ const stylesheet = css`
 		-webkit-background-clip: text;
 		background-clip: text;
 		color: transparent;
-		/* Starlight bloom. Sits behind the glyphs, so it never muddies their edges. */
 		filter: drop-shadow(0 0 28px color-mix(in srgb, var(--color-brand-1) 22%, transparent));
 	}
-	/* Heavy, wide-tracked, small — the loud half of the thin/bold pairing. */
 	.subtitle {
 		display: none;
 		max-width: 42ch;

@@ -4,27 +4,13 @@
 	--font-display: 'Outfit', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 	--font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
-	/*
-	 * Motion budget. Custom properties inherit through shadow boundaries, so setting these
-	 * on :root is how every component's internal stylesheet learns about the preference.
-	 *
-	 * --motion      multiplies one-shot durations; at 0 an entrance animation with
-	 *               `fill-mode: both` lands on its final frame immediately, so content
-	 *               still ends up visible rather than stuck mid-flight.
-	 * --motion-play pauses ambient/infinite animations at their first frame instead.
-	 */
 	--motion: 1;
 	--motion-play: running;
 
-	/* Settles just past its resting point; enough weight to feel physical, not springy. */
 	--ease-orbit: cubic-bezier(0.18, 1.03, 0.32, 1);
 	--ease-orbit-out: cubic-bezier(0.55, 0.06, 0.86, 0.3);
 
-	/*
-	 * Which way a page transition travels. 1 moves toward the end of the nav (leave left,
-	 * arrive from the right); -1 mirrors it for navigating back toward Home. Set from
-	 * nav-direction.ts, which is the only thing CSS cannot determine for itself here.
-	 */
+	/* 1 travels toward the end of the nav, -1 back toward its start. See nav-direction.ts. */
 	--nav-dir: 1;
 }
 
@@ -39,7 +25,7 @@
 	}
 }
 
-/* An explicit choice outranks the OS hint in both directions (higher specificity). */
+/* An explicit choice has to outrank the broader OS preference, in both directions. */
 :root[data-motion='reduced'] {
 	--motion: 0;
 	--motion-play: paused;
@@ -53,21 +39,11 @@
 html {
 	font-size: 16px;
 	-webkit-text-size-adjust: 100%;
-	/*
-	 * Incoming content starts offset to one side, which would otherwise widen the document and
-	 * flash a horizontal scrollbar for the length of every forward navigation. (Only forward:
-	 * an element offset to the left sits in negative space, which does not create overflow.)
-	 *
-	 * clip rather than hidden — it suppresses the overflow without turning the element into a
-	 * scroll container, so position: sticky and scroll anchoring keep working, and overflow-y
-	 * stays visible so the page scrolls normally.
-	 */
+	/* Contains content parked off-screen mid-transition. clip, not hidden, to avoid making
+	   this a scroll container. */
 	overflow-x: clip;
-	/*
-	 * Reserve the scrollbar track permanently. Pages differ in height, so without this the
-	 * scrollbar appears and disappears across a navigation and shifts every element sideways
-	 * by its width mid-transition.
-	 */
+	/* Pages differ in height; without this the scrollbar appears and disappears across a
+	   navigation and shifts every element sideways. */
 	scrollbar-gutter: stable;
 }
 
@@ -76,26 +52,16 @@ body {
 	height: 100%;
 	background: #04050e;
 	font-family: var(--font-body);
-	/*
-	 * Also clipped here, not just on html: overflow set on the root element is propagated to
-	 * the viewport, and relying on that propagation alone still let forward navigations scroll
-	 * sideways. Clipping on body applies as an ordinary element and actually contains the
-	 * incoming content while it is offset.
-	 */
+	/* Repeated from html: root overflow is propagated to the viewport, and that propagation
+	   alone does not contain the offset content. */
 	overflow-x: clip;
 }
 
 /*
- * Page transitions.
+ * Page transitions. See "Application architecture" in README.md.
  *
- * thunderous-csr already swaps content inside document.startViewTransition(), so this is
- * pure CSS — no navigation JS of our own.
- *
- * These names must go on light-DOM elements: view-transition-name has no effect inside a
- * shadow root, so x-page's own header/main/footer cannot be captured. The content blocks
- * below are the slotted light-DOM elements, which works and is also the better split — the
- * nav, footer and starfield stay in the untouched root snapshot and hold still while the
- * content travels.
+ * These names have to live on light-DOM elements; view-transition-name has no effect inside a
+ * shadow root, so x-page's own header/main/footer cannot be captured.
  */
 x-page-heading {
 	view-transition-name: page-heading;
@@ -107,24 +73,14 @@ x-feature {
 	view-transition-name: page-feature;
 }
 
-/*
- * While thunderous-csr is swapping content it marks the view .pending. That window is where
- * the browser captures the outgoing snapshot — the most expensive moment of the whole
- * navigation — so the ambient starfield and nebula drift stand down and leave it the frame
- * budget. --motion-play inherits through the shadow boundary into x-page's cosmos layers.
- */
+/* thunderous-csr marks the view .pending while it swaps content, which is when the browser
+   captures the outgoing snapshot. Standing the ambient layers down frees that frame budget. */
 t-view.pending {
 	--motion-play: paused;
 }
 
-/*
- * Leaving: the whole page slides off sideways, staggered by block.
- *
- * The last block finishes leaving at 420ms (100ms delay + 320ms); the first arrival is held
- * until 470ms by the delays below. The two phases never overlap, so it reads as one page
- * leaving and then another arriving rather than the two blending together. The 50ms of empty
- * space between them is deliberate.
- */
+/* The arrival delays below are set so no block starts entering until every block has
+   finished leaving; the two phases are meant to read as separate, not as a cross-fade. */
 ::view-transition-old(page-heading),
 ::view-transition-old(page-content),
 ::view-transition-old(page-feature) {
@@ -138,18 +94,9 @@ t-view.pending {
 }
 
 /*
- * Arriving: the incoming blocks swing in from the opposite side, each a beat behind the last.
- *
- * This has to be driven from the pseudo-element, not from the real element. A view transition
- * captures the incoming content rather than showing it live, and the element's own transform
- * is baked into that capture — so an animation declared on the element never plays during the
- * transition, it is simply sampled once. Doing it that way made the exit invisible and turned
- * the whole thing into two entrances in the same direction.
- *
- * The group animations are deliberately left at their UA default. Each group tweens its block
- * from the old box to the new one across the transition; because the exit and entrance no
- * longer overlap, the departing content sees nearly-old geometry and the arriving content
- * nearly-new, so neither gets visibly stretched.
+ * Must be driven from the pseudo-element. A view transition captures the incoming content
+ * rather than showing it live, so an animation declared on the real element is sampled once
+ * and never plays.
  */
 ::view-transition-new(page-heading),
 ::view-transition-new(page-content),
@@ -164,11 +111,8 @@ t-view.pending {
 	animation-delay: calc(var(--motion) * 600ms);
 }
 
-/*
- * The root snapshot is everything that is NOT named — the nav, footer and starfield. Those
- * are visually identical either side of a navigation, so cross-fading them only causes a
- * flicker. Holding them still is what makes the content look like it moves against a frame.
- */
+/* Everything unnamed — nav, footer, starfield — is identical either side of a navigation, so
+   cross-fading it only flickers. Holding it still is what the travelling content reads against. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
 	animation: none;
@@ -179,15 +123,10 @@ t-view.pending {
 }
 
 /*
- * Cold-load entrance only — a first visit has no outgoing page and therefore no view
- * transition, so nothing above would animate.
- *
- * Scoped to :not([data-nav-direction]) so it cannot fire during a navigation. nav-direction.ts
- * sets that attribute on the first navigation and it stays set for the life of the document,
- * so from then on the ::view-transition-new() rules above are the only entrance. Without this
- * guard both would run and the transforms would compound.
- *
- * No leading delay here: there is nothing to wait for on a cold load.
+ * Cold loads have no outgoing page and so no view transition for the rules above to drive.
+ * The :not() guard is load-bearing: nav-direction.ts sets that attribute on the first
+ * navigation and never clears it, which keeps this from compounding with the pseudo-element
+ * animation on every subsequent one.
  */
 :root:not([data-nav-direction]) :is(x-page-heading, x-content, x-feature) {
 	animation: orbit-in calc(var(--motion) * 480ms) var(--ease-orbit) both;
@@ -200,19 +139,12 @@ t-view.pending {
 }
 
 /*
- * Lateral travel carries the motion, with the depth and pitch kept as a light accent so it
- * still reads as part of the orbit rather than a flat slide.
+ * Multiplying by --nav-dir mirrors the gesture for backward navigation; depth and pitch are
+ * deliberately left unmirrored, as they read the same either way.
  *
- * Multiplying by --nav-dir mirrors the whole gesture: going forward the old page leaves to
- * the left and the new one arrives from the right; going back toward Home, both reverse. The
- * depth and pitch are deliberately NOT mirrored — those read the same either way.
- *
- * Neither keyframe touches opacity. The blocks travel a full viewport width, so they are
- * genuinely gone rather than dissolved in place — fading would read as a cross-dissolve, and
- * it is the thing that made the two pages look like they melted into each other.
- *
- * 105vw rather than a percentage of the element: a percentage is relative to the element's own
- * width, which is narrower than the viewport and left part of the page still on screen.
+ * Travel is expressed in vw, not a percentage of the element, so a block clears the viewport
+ * regardless of its own width. Nothing here touches opacity — these are meant to leave the
+ * screen rather than dissolve in place.
  */
 @keyframes orbit-in {
 	from {

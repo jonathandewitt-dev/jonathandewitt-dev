@@ -1,17 +1,8 @@
 /**
- * Motion preference, shared by every component that animates.
+ * Whether animation is wanted, published to the document for components to read.
  *
- * The resolved value is published two ways, so nothing has to depend on this module's
- * behaviour to react to it:
- *
- *  - as `data-motion` on <html>, which global.css turns into the inherited `--motion` and
- *    `--motion-play` custom properties. Those cross shadow boundaries, so component
- *    stylesheets pick the preference up without importing anything at all.
- *  - as a MOTION_CHANGE custom event on `document`, for the few places that need to react in
- *    script rather than in CSS.
- *
- * Nothing here touches the DOM at module scope: this file is reachable from the isomorphic
- * component registry, so it is evaluated on the server during static generation too.
+ * See "Motion preference" in README.md. Nothing here runs at module scope, because this file
+ * is reachable from the isomorphic component registry and is evaluated on the server too.
  */
 
 export type MotionPreference = 'full' | 'reduced';
@@ -57,8 +48,12 @@ export const setMotion = (value: MotionPreference): void => {
 
 /**
  * Watches the OS preference and announces changes while the user has made no explicit choice.
- * No attribute is written in that case — the media query in global.css already covers the CSS
- * side, so this only exists to notify script. Call once from the composition root.
+ * Call once from the composition root.
+ *
+ * @example
+ * ```ts
+ * const stop = startMotion();
+ * ```
  */
 export const startMotion = (): (() => void) => {
 	const query = window.matchMedia('(prefers-reduced-motion: reduce)');

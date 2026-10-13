@@ -1,15 +1,12 @@
-/**
- * The site's primary destinations, in the order they appear on the orbit ring.
- *
- * The order is meaningful beyond rendering: page transitions travel left or right depending
- * on whether you are moving toward the end of this list or back toward its start, so this is
- * the single source both the nav and the transition direction read from.
- */
 export type Route = {
 	label: string;
 	href: string;
 };
 
+/**
+ * The site's primary destinations. Order is meaningful: page transitions travel left or right
+ * depending on whether a navigation moves toward the end of this list or back toward its start.
+ */
 export const routes: Route[] = [
 	{ label: 'Home', href: '/' },
 	{ label: 'About Me', href: '/about' },

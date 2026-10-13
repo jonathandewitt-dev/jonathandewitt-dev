@@ -126,6 +126,8 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 });
 
 const stylesheet = css`
+	/* Must stay at the top level. CSS nesting does not permit @keyframes inside a style rule, so
+	   moving this into nav[data-enhanced] drops it silently while animation-name still resolves. */
 	@keyframes orbit-pitch {
 		from {
 			transform: rotateX(var(--pitch));
@@ -139,6 +141,8 @@ const stylesheet = css`
 		min-width: 0;
 	}
 	nav {
+		/* Arc length between destinations is radius * ITEM_SPREAD, so too small a radius makes
+		   each link wider than its own slot and neighbours overlap. */
 		--radius: clamp(15rem, 38vw, 28rem);
 		--ribbon-height: 3.75rem;
 		--rotation: 0deg;
@@ -211,6 +215,7 @@ const stylesheet = css`
 			.tilt {
 				animation: orbit-pitch linear both;
 				animation-timeline: scroll(root block);
+				/* Short enough to finish within the scroll a page this size actually has. */
 				animation-range: 0 420px;
 				animation-play-state: var(--motion-play);
 			}

@@ -87,6 +87,61 @@ Preserve semantic elements, keyboard access, and visible focus indicators.
 Core `thunderous` HTML templates are not a sanitizer. Check escaping at the actual rendering boundary
 before inserting untrusted content; do not assume server expression handling makes all templates safe.
 
+## Application architecture
+
+Three app-level concerns publish their state to the document rather than exposing it to callers. Nothing
+imports them in order to be affected by them, so components stay independent of one another.
+
+### Shared state
+
+`src/routes.ts` is the single source for the primary destinations. Their **order is meaningful**: page
+transitions travel left or right depending on whether a navigation moves toward the end of the list or back
+toward its start. The orbit nav, the header and footer link lists, and the transition direction all read it.
+
+`src/motion.ts` and `src/nav-direction.ts` are started once from `component-registry.ts`, behind a browser
+guard because that module is isomorphic. Each publishes two ways:
+
+| Concern       | Attribute on `<html>` | Custom property             | Event on `document` |
+| ------------- | --------------------- | --------------------------- | ------------------- |
+| Motion        | `data-motion`         | `--motion`, `--motion-play` | `motion:change`     |
+| Nav direction | `data-nav-direction`  | `--nav-dir`                 | `nav:direction`     |
+
+The custom properties are the important half: they inherit through shadow boundaries, so a component's
+internal stylesheet reacts to either concern without importing anything.
+
+### Motion preference
+
+`--motion` multiplies one-shot durations and `--motion-play` pauses ambient ones. A component opts in by
+writing `calc(var(--motion) * 200ms)` instead of a literal duration, or `animation-play-state: var(--motion-play)`
+for anything infinite. At zero, animations with `fill-mode: both` land on their final frame immediately, so
+content still ends up visible rather than frozen mid-flight.
+
+The preference defaults to the OS setting and is overridden by the in-page toggle, which persists to
+`localStorage`. An inline script in `_layout.html` applies a stored choice before first paint.
+
+Beware that the `animation` shorthand resets `animation-play-state`, so the longhand has to come after it.
+
+### Page transitions
+
+`thunderous-csr` already wraps its content swap in `document.startViewTransition()`, so the transitions are
+pure CSS in `global.css`. The only script involved is the direction flag, which CSS cannot derive because no
+selector can see where a navigation is headed.
+
+Two platform constraints shape the implementation:
+
+- **`view-transition-name` has no effect inside a shadow root.** The named elements are therefore the
+  light-DOM content blocks (`x-page-heading`, `x-content`, `x-feature`), not `x-page`'s own layout elements.
+  This is also the better split — the nav, footer and starfield stay in the untouched root snapshot and hold
+  still, so the content appears to travel against a fixed frame.
+- **A view transition captures the incoming element rather than showing it live**, and the element's own
+  transform is baked into that capture. Both halves must therefore be driven from the
+  `::view-transition-old()` and `::view-transition-new()` pseudo-elements; an animation declared on the real
+  element is sampled once and never plays.
+
+The element-level entrance that remains is for cold loads, where there is no outgoing page and so no
+transition at all. It is scoped to `:root:not([data-nav-direction])` so it cannot also fire during a
+navigation and compound with the pseudo-element animation.
+
 ## Code conventions and validation
 
 Follow `.prettierrc.json`: tabs in code, single quotes, semicolons, trailing commas, and a 120-column width.

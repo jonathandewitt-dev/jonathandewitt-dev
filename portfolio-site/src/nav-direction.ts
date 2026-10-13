@@ -1,18 +1,11 @@
 import { routeIndex } from './routes';
 
 /**
- * Publishes which way a navigation is travelling.
+ * Which way a navigation travels through `routes`, published to the document for the page
+ * transitions to read.
  *
- * Like motion.ts, it publishes to the DOM rather than to callers: `data-nav-direction` on
- * <html> becomes the `--nav-dir` multiplier the transition keyframes read, and a
- * NAV_DIRECTION custom event carries the same value to anything that needs it in script. No
- * component has to import this module to be affected by it.
- *
- * This is the one part of the page transition CSS cannot work out alone — the direction comes
- * from comparing two routes, and no selector can see where a navigation is headed. The motion
- * itself stays entirely in CSS.
- *
- * Nothing runs at module scope; this file is reachable from the isomorphic registry.
+ * See "Page transitions" in README.md. Nothing here runs at module scope, because this file is
+ * reachable from the isomorphic component registry and is evaluated on the server too.
  */
 
 export type NavDirection = 'forward' | 'back';
@@ -27,9 +20,10 @@ type NavigateEventLike = Event & { destination?: { url?: string } };
 /**
  * Starts flagging navigation direction. Call once from the composition root.
  *
- * The flag is set during the Navigation API's `navigate` event, which fires well before
- * thunderous-csr's interception handler reaches startViewTransition, so the value is always in
- * place before the first frame of the transition is composited.
+ * @example
+ * ```ts
+ * const stop = startNavDirection();
+ * ```
  */
 export const startNavDirection = (): (() => void) => {
 	const navigation = (window as unknown as { navigation?: EventTarget }).navigation;

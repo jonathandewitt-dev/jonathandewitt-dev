@@ -5,29 +5,13 @@ export const Content = customElement(({ adoptStyleSheet }) => {
 	return html`<slot></slot>`;
 });
 
-/*
- * Typography for page copy. The headings and paragraphs live in the light DOM, so they are
- * reachable only as ::slotted() direct children — nested markup (inside x-section, x-card)
- * is styled by those components instead.
- */
 const stylesheet = css`
 	:host {
-		/*
-		 * flow-root, not block: this establishes a block formatting context so the floated
-		 * portrait is contained here. As a plain block it would overflow the bottom and
-		 * shorten the line boxes of whatever follows — which squeezed the feature card.
-		 */
 		display: flow-root;
 		max-width: 72ch;
 		margin-inline: auto;
 		overflow-wrap: anywhere;
 	}
-
-	/*
-	 * A floated portrait with a matching circular shape-outside, so the copy curves around it
-	 * instead of sitting in a rectangular notch. Below the breakpoint it becomes a centred
-	 * block — at narrow widths a float leaves too little room for a readable measure.
-	 */
 	::slotted(x-portrait) {
 		float: right;
 		shape-outside: circle(50%);
@@ -63,7 +47,6 @@ const stylesheet = css`
 		margin: 2.25rem 0 0.75rem;
 		color: var(--color-neutral-1);
 	}
-	/* Body copy is held just under pure white; full-strength text on near-black glares. */
 	::slotted(p) {
 		margin: 0 0 1.15rem;
 		font-size: 1.0625rem;
@@ -75,7 +58,6 @@ const stylesheet = css`
 		font-weight: 700;
 		color: var(--color-neutral-1);
 	}
-	/* A horizon line rather than a rule — bright at the centre, dissolving at both edges. */
 	::slotted(hr) {
 		height: 1px;
 		border: 0;

@@ -35,13 +35,9 @@ ProjectList.define('x-project-list');
 ProjectItem.define('x-project-item');
 
 /*
- * App-level concerns live here rather than inside a component: both publish their state to the
- * document (as attributes and custom events) and nothing imports them to be affected, so no
- * component needs to know they exist.
- *
- * This module is isomorphic, so the browser-only work is guarded — it is also evaluated on the
- * server during static generation. These run for the lifetime of the page, so their teardowns
- * are intentionally unused.
+ * App-level concerns are started here rather than from a component, so nothing has to import
+ * them in order to be affected by them. They run for the life of the page, hence the discarded
+ * teardowns. The guard is required because this module is isomorphic.
  */
 if (typeof window !== 'undefined') {
 	startMotion();

@@ -1,10 +1,12 @@
 import { createSignal, css, customElement, html } from 'thunderous';
 
 /**
- * A circular headshot, treated as another body in the orbit: crisp rim, soft outer glow.
+ * A circular headshot, rimmed and bloomed to sit alongside the orbit nav.
  *
- * The edge vignette matters when the source photo has a bright background — without it a
- * light frame reads as a disc pasted onto the void rather than something lit within it.
+ * @example
+ * ```html
+ * <x-portrait src="/assets/portrait.png" alt="Jonathan DeWitt"></x-portrait>
+ * ```
  */
 export const Portrait = customElement(({ adoptStyleSheet, attrSignals }) => {
 	const [src] = attrSignals['src'] ?? createSignal(null);
@@ -32,7 +34,6 @@ const stylesheet = css`
 		border-radius: 50%;
 		border: 1px solid color-mix(in srgb, var(--color-brand-1) 45%, transparent);
 		box-sizing: border-box;
-		/* Outer bloom ties it to the nebula behind the page. */
 		box-shadow:
 			0 0 0 6px color-mix(in srgb, var(--color-brand-1) 7%, transparent),
 			0 18px 50px rgba(2, 4, 16, 0.6),
@@ -42,16 +43,14 @@ const stylesheet = css`
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		/* Bias upward so a head stays centred if the source is taller than it is wide. */
+		/* Biased upward so a head stays centred if the source is taller than it is wide. */
 		object-position: 50% 38%;
-		/* Tightens the crop onto the face, which otherwise reads small at this diameter. */
+		/* The full frame reads small at this diameter, so the crop is tightened onto the face. */
 		transform: scale(var(--portrait-zoom, 1.14));
 		display: block;
 	}
-	/*
-	 * Darkens only the outer edge, so a bright background falls away into the page while the
-	 * face keeps its own exposure. Sits above the image, below the rim.
-	 */
+	/* Darkens only the outer edge, so a photo shot against a bright background falls away into
+	   the page instead of reading as a disc pasted onto it. */
 	figure::after {
 		content: '';
 		position: absolute;

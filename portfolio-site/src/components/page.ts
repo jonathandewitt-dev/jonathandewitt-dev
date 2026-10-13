@@ -21,8 +21,6 @@ export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, d
 			const renderMotion = () => {
 				motionToggle.setAttribute('aria-pressed', String(resolveMotion() === 'reduced'));
 			};
-			// Reflect whatever is already in effect, then follow the announcement rather than
-			// subscribing to the motion module directly.
 			renderMotion();
 			const onMotionClick = () => {
 				const next: MotionPreference = resolveMotion() === 'reduced' ? 'full' : 'reduced';
@@ -135,11 +133,8 @@ const stylesheet = css`
 		align-items: center;
 	}
 
-	/*
-	 * Deep space. Fixed rather than absolute so the field stays put while the page scrolls,
-	 * which reads as looking *through* a window into depth rather than past a flat texture.
-	 * Out-of-flow, so it never becomes a row of the .page grid.
-	 */
+	/* Fixed so the starfield holds still while the page scrolls past it, rather than scrolling
+	   away with the content. */
 	.cosmos {
 		position: fixed;
 		inset: 0;
@@ -147,13 +142,8 @@ const stylesheet = css`
 		overflow: hidden;
 		pointer-events: none;
 	}
-	/*
-	 * The page chrome deliberately has no view-transition-name: it stays put while the
-	 * content rotates through, so the starfield and nav read as a fixed frame you are
-	 * travelling behind. Transition rules live in global.css — view-transition-name has no
-	 * effect on elements inside a shadow root, so the named elements have to be the
-	 * light-DOM content blocks.
-	 */
+	/* Deliberately unnamed for view transitions, so the chrome holds still while the content
+	   travels against it. See "Page transitions" in README.md. */
 	header,
 	main,
 	footer {
@@ -161,18 +151,14 @@ const stylesheet = css`
 		z-index: 1;
 	}
 
-	/* A faint galactic band raked across the view, anchoring the composition diagonally. */
 	.band {
 		position: absolute;
 		top: -30%;
 		left: -30%;
 		width: 160%;
 		height: 160%;
-		/*
-		 * Stops are spread wide enough to be soft on their own. This element covers roughly
-		 * 1800x1500px, so the blur it used to carry was re-rasterizing a ~2.8M pixel surface
-		 * on every scroll-driven frame — by far the most expensive thing on the page.
-		 */
+		/* Stops are spread wide enough to be soft without a blur filter, which would be
+		   re-rasterized every scroll-driven frame across a surface this large. */
 		background: linear-gradient(
 			104deg,
 			transparent 30%,
@@ -186,7 +172,7 @@ const stylesheet = css`
 	.nebula {
 		position: absolute;
 		border-radius: 50%;
-		/* screen makes the clouds add light to the void instead of painting over it. */
+		/* Adds light to the void rather than painting over it. */
 		mix-blend-mode: screen;
 		will-change: transform;
 		animation-play-state: var(--motion-play);
@@ -225,11 +211,9 @@ const stylesheet = css`
 		animation-play-state: var(--motion-play);
 	}
 
-	/*
-	 * Three parallax star layers. Each is one repeating tile of tiny radial gradients, so an
-	 * entire field costs a single painted layer instead of hundreds of elements. Inset is
-	 * negative to leave room to drift without exposing an edge.
-	 */
+	/* One repeating tile of gradients per layer, so a whole field costs a single painted layer
+	   rather than hundreds of elements. Negative inset leaves room to drift without exposing
+	   an edge. */
 	.stars {
 		position: absolute;
 		inset: -20%;
@@ -276,7 +260,7 @@ const stylesheet = css`
 		animation-play-state: var(--motion-play);
 	}
 
-	/* Darkens the corners so long-form text always sits on a calm, even ground. */
+	/* Keeps long-form text on an even ground regardless of what the nebulae are doing. */
 	.vignette {
 		position: absolute;
 		inset: 0;
@@ -318,15 +302,11 @@ const stylesheet = css`
 	}
 
 	/*
-	 * Scroll parallax, pure CSS via scroll-driven animations.
+	 * Parallax animates the independent translate property because the ambient drift above
+	 * already owns transform; the two then compose without wrapper elements.
 	 *
-	 * The ambient drift above already animates the transform property, so parallax animates
-	 * the independent translate property instead — the two compose on the same element and
-	 * no wrapper divs are needed. Nearer layers travel further, which is what sells depth.
-	 *
-	 * Wrapped in @supports because Firefox and older Safari lack scroll timelines; without
-	 * it they would simply ignore animation-timeline and run the parallax keyframes on a
-	 * time basis, which would look wrong. Unsupported browsers keep the static field.
+	 * @supports is required, not defensive: a browser without scroll timelines ignores
+	 * animation-timeline and would otherwise run these keyframes on a time basis.
 	 */
 	@supports (animation-timeline: scroll()) {
 		.band {
@@ -567,11 +547,7 @@ const stylesheet = css`
 		border-radius: 0.25rem;
 	}
 
-	/*
-	 * Pinned top-left so it is reachable before any scrolling — an accessibility control is
-	 * no use parked at the bottom of a long page. Sits above the content layer, and is kept
-	 * out of the named view-transition regions so it stays put during page transitions.
-	 */
+	/* Pinned so the control is reachable without scrolling to find it. */
 	.motion-toggle {
 		position: fixed;
 		top: 1rem;

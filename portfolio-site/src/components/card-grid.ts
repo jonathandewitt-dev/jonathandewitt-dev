@@ -32,7 +32,6 @@ const cardStyles = css`
 		padding: 1.4rem;
 		border: 1px solid var(--color-surface-1-2);
 		border-radius: 1rem;
-		/* A faint top-left sheen, as though lit by the nebula behind the page. */
 		background:
 			linear-gradient(145deg, color-mix(in srgb, var(--color-brand-1) 7%, transparent), transparent 42%),
 			var(--color-surface-1);
