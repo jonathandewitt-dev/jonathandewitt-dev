@@ -1,11 +1,11 @@
-import { customElement, html, css, derived } from 'thunderous';
+import { customElement, html, css } from 'thunderous';
 import { theme } from '../theme';
-import { resolveMotion, setMotion, subscribeMotion, type MotionPreference } from '../motion';
+import { MOTION_CHANGE, resolveMotion, setMotion, type MotionPreference } from '../motion';
+import { routes } from '../routes';
 
-export const Page = customElement(({ adoptStyleSheet, root, attrSignals, connectedCallback, disconnectedCallback }) => {
+export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
 	adoptStyleSheet(theme);
 	adoptStyleSheet(stylesheet);
-	const [prominent] = attrSignals['prominent'] ?? [() => null];
 
 	let cleanup = () => {};
 	connectedCallback(() => {
@@ -18,21 +18,21 @@ export const Page = customElement(({ adoptStyleSheet, root, attrSignals, connect
 
 		const motionToggle = root.querySelector<HTMLButtonElement>('.motion-toggle');
 		if (motionToggle) {
-			const renderMotion = (value: MotionPreference) => {
-				motionToggle.setAttribute('aria-pressed', String(value === 'reduced'));
+			const renderMotion = () => {
+				motionToggle.setAttribute('aria-pressed', String(resolveMotion() === 'reduced'));
 			};
-			// Reflect whatever is already in effect before listening for changes.
-			renderMotion(resolveMotion());
-			const unsubscribeMotion = subscribeMotion(renderMotion);
+			// Reflect whatever is already in effect, then follow the announcement rather than
+			// subscribing to the motion module directly.
+			renderMotion();
 			const onMotionClick = () => {
 				const next: MotionPreference = resolveMotion() === 'reduced' ? 'full' : 'reduced';
 				setMotion(next);
-				renderMotion(next);
 			};
 			motionToggle.addEventListener('click', onMotionClick);
+			document.addEventListener(MOTION_CHANGE, renderMotion);
 			teardowns.push(() => {
 				motionToggle.removeEventListener('click', onMotionClick);
-				unsubscribeMotion();
+				document.removeEventListener(MOTION_CHANGE, renderMotion);
 			});
 		}
 
@@ -62,12 +62,7 @@ export const Page = customElement(({ adoptStyleSheet, root, attrSignals, connect
 	});
 	disconnectedCallback(() => cleanup());
 
-	const links = () => html`
-		<a href="/">Home</a>
-		<a href="/about">About Me</a>
-		<a href="/work">My Work</a>
-		<a href="/contact">Contact Me</a>
-	`;
+	const links = () => html`${routes.map((route) => html`<a href="${route.href}">${route.label}</a>`)}`;
 
 	return html`
 		<div class="page">
@@ -87,7 +82,7 @@ export const Page = customElement(({ adoptStyleSheet, root, attrSignals, connect
 			</div>
 			<header>
 				<slot name="header"></slot>
-				<x-orbit-nav class="desktop-nav" prominent="${derived(() => (prominent() === null ? '' : null))}"></x-orbit-nav>
+				<x-orbit-nav class="desktop-nav"></x-orbit-nav>
 				<details class="mobile-menu">
 					<summary><span aria-hidden="true">☰</span> Menu</summary>
 					<nav class="header-nav" aria-label="Main navigation">${links()}</nav>
@@ -97,10 +92,7 @@ export const Page = customElement(({ adoptStyleSheet, root, attrSignals, connect
 				<slot></slot>
 			</main>
 			<footer>
-				<nav class="footer-nav" aria-label="Footer navigation">
-					<a href="/">Home</a> <a href="/about">About Me</a> <a href="/work">My Work</a>
-					<a href="/contact">Contact Me</a>
-				</nav>
+				<nav class="footer-nav" aria-label="Footer navigation">${links()}</nav>
 				<slot name="footer"></slot>
 				<small
 					>&copy; ${new Date().getFullYear()} Jonathan DeWitt &mdash; Powered by

@@ -1,13 +1,10 @@
 import { css, customElement, html } from 'thunderous';
-import { resolveMotion, subscribeMotion } from '../motion';
+import { MOTION_CHANGE, resolveMotion } from '../motion';
+import { routes as destinations, routeIndex } from '../routes';
 
-const destinations = [
-	{ label: 'Home', href: '/' },
-	{ label: 'About Me', href: '/about' },
-	{ label: 'My Work', href: '/work' },
-	{ label: 'Contact Me', href: '/contact' },
-];
-const angleFor = (index: number) => -75 + index * 50;
+const ITEM_SPREAD = 36;
+const MAX_ROTATION = ((destinations.length - 1) * ITEM_SPREAD) / 2;
+const angleFor = (index: number) => index * ITEM_SPREAD - MAX_ROTATION;
 
 export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
 	adoptStyleSheet(stylesheet);
@@ -27,8 +24,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 				return pointer.matches && resolveMotion() === 'full';
 			},
 		};
-		const path = location.pathname.replace(/\/$/, '') || '/';
-		const current = destinations.findIndex((item) => item.href === path);
+		const current = routeIndex(location.pathname);
 		const initial = Math.max(0, current);
 		let selected = -1;
 		let frame = 0;
@@ -61,7 +57,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 				const bounds = stage.getBoundingClientRect();
 				const progress = Math.max(0, Math.min(1, (pointerX - bounds.left) / bounds.width));
 				select(-1);
-				stage.style.setProperty('--rotation', `${75 - progress * 150}deg`);
+				stage.style.setProperty('--rotation', `${MAX_ROTATION - progress * MAX_ROTATION * 2}deg`);
 			});
 		};
 		const focusLink = (event: FocusEvent) => {
@@ -92,7 +88,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		stage.addEventListener('focusin', focusLink);
 		stage.addEventListener('keydown', keys);
 		pointer.addEventListener('change', updateMode);
-		const unsubscribeMotion = subscribeMotion(updateMode);
+		document.addEventListener(MOTION_CHANGE, updateMode);
 		cleanup = () => {
 			cancelAnimationFrame(frame);
 			stage.removeEventListener('pointermove', track);
@@ -100,7 +96,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 			stage.removeEventListener('focusin', focusLink);
 			stage.removeEventListener('keydown', keys);
 			pointer.removeEventListener('change', updateMode);
-			unsubscribeMotion();
+			document.removeEventListener(MOTION_CHANGE, updateMode);
 		};
 	});
 	disconnectedCallback(() => cleanup());
@@ -130,17 +126,23 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 });
 
 const stylesheet = css`
+	@keyframes orbit-pitch {
+		from {
+			transform: rotateX(var(--pitch));
+		}
+		to {
+			transform: rotateX(16deg);
+		}
+	}
 	:host {
 		display: block;
 		min-width: 0;
 	}
-	:host([prominent]) {
-		translate: 0 -3rem;
-	}
 	nav {
-		--radius: clamp(11rem, 25vw, 19rem);
-		--ribbon-height: 4.5rem;
+		--radius: clamp(15rem, 38vw, 28rem);
+		--ribbon-height: 3.75rem;
 		--rotation: 0deg;
+		--pitch: 4deg;
 		color: var(--color-page-1-c);
 	}
 	.ring {
@@ -188,11 +190,11 @@ const stylesheet = css`
 		.stage {
 			position: relative;
 			width: 100%;
-			max-width: 58rem;
-			height: 20rem;
+			max-width: 72rem;
+			height: 12.5rem;
 			margin-inline: auto;
-			perspective: 1000px;
-			perspective-origin: 50% 45%;
+			perspective: 1500px;
+			perspective-origin: 50% 50%;
 		}
 		.tilt,
 		.ring,
@@ -202,8 +204,16 @@ const stylesheet = css`
 		}
 		.tilt {
 			left: 50%;
-			top: 60%;
-			transform: rotateX(20deg);
+			top: 50%;
+			transform: rotateX(var(--pitch));
+		}
+		@supports (animation-timeline: scroll()) {
+			.tilt {
+				animation: orbit-pitch linear both;
+				animation-timeline: scroll(root block);
+				animation-range: 0 420px;
+				animation-play-state: var(--motion-play);
+			}
 		}
 		.ring {
 			display: block;
@@ -235,9 +245,9 @@ const stylesheet = css`
 		}
 		.nav-link {
 			position: absolute;
-			width: 12rem;
-			height: 3.5rem;
-			padding: 0.75rem;
+			width: 10.5rem;
+			height: 3.25rem;
+			padding: 0.65rem;
 			transform: translate(-50%, -50%) rotateY(var(--angle)) translateZ(calc(var(--radius) + 3px));
 			backface-visibility: hidden;
 			background: transparent;
@@ -273,7 +283,7 @@ const stylesheet = css`
 			width: calc(var(--radius) * 2);
 			height: 3rem;
 			left: 50%;
-			top: 74%;
+			top: 78%;
 			transform: translateX(-50%);
 			border-radius: 50%;
 			background: var(--color-accent-1);

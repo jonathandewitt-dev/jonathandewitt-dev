@@ -11,6 +11,8 @@ import { List, ListItem } from './components/list';
 import { CardGrid, Card } from './components/card-grid';
 import { Blockquote } from './components/blockquote';
 import { DescriptionList, DescriptionItem } from './components/description-list';
+import { startMotion } from './motion';
+import { startNavDirection } from './nav-direction';
 
 View.define('t-view');
 Page.define('x-page');
@@ -31,3 +33,17 @@ DescriptionItem.define('x-description-item');
 
 ProjectList.define('x-project-list');
 ProjectItem.define('x-project-item');
+
+/*
+ * App-level concerns live here rather than inside a component: both publish their state to the
+ * document (as attributes and custom events) and nothing imports them to be affected, so no
+ * component needs to know they exist.
+ *
+ * This module is isomorphic, so the browser-only work is guarded — it is also evaluated on the
+ * server during static generation. These run for the lifetime of the page, so their teardowns
+ * are intentionally unused.
+ */
+if (typeof window !== 'undefined') {
+	startMotion();
+	startNavDirection();
+}

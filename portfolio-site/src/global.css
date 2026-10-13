@@ -17,8 +17,19 @@
 	--motion-play: running;
 
 	/* Settles just past its resting point; enough weight to feel physical, not springy. */
-	--ease-orbit: cubic-bezier(0.2, 1.12, 0.32, 1);
+	--ease-orbit: cubic-bezier(0.18, 1.03, 0.32, 1);
 	--ease-orbit-out: cubic-bezier(0.55, 0.06, 0.86, 0.3);
+
+	/*
+	 * Which way a page transition travels. 1 moves toward the end of the nav (leave left,
+	 * arrive from the right); -1 mirrors it for navigating back toward Home. Set from
+	 * nav-direction.ts, which is the only thing CSS cannot determine for itself here.
+	 */
+	--nav-dir: 1;
+}
+
+:root[data-nav-direction='back'] {
+	--nav-dir: -1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -42,6 +53,22 @@
 html {
 	font-size: 16px;
 	-webkit-text-size-adjust: 100%;
+	/*
+	 * Incoming content starts offset to one side, which would otherwise widen the document and
+	 * flash a horizontal scrollbar for the length of every forward navigation. (Only forward:
+	 * an element offset to the left sits in negative space, which does not create overflow.)
+	 *
+	 * clip rather than hidden — it suppresses the overflow without turning the element into a
+	 * scroll container, so position: sticky and scroll anchoring keep working, and overflow-y
+	 * stays visible so the page scrolls normally.
+	 */
+	overflow-x: clip;
+	/*
+	 * Reserve the scrollbar track permanently. Pages differ in height, so without this the
+	 * scrollbar appears and disappears across a navigation and shifts every element sideways
+	 * by its width mid-transition.
+	 */
+	scrollbar-gutter: stable;
 }
 
 body {
@@ -49,6 +76,13 @@ body {
 	height: 100%;
 	background: #04050e;
 	font-family: var(--font-body);
+	/*
+	 * Also clipped here, not just on html: overflow set on the root element is propagated to
+	 * the viewport, and relying on that propagation alone still let forward navigations scroll
+	 * sideways. Clipping on body applies as an ordinary element and actually contains the
+	 * incoming content while it is offset.
+	 */
+	overflow-x: clip;
 }
 
 /*
@@ -84,17 +118,17 @@ t-view.pending {
 }
 
 /*
- * Leaving: rotates away from the viewer on the same axis as the orbit nav.
+ * Leaving: the whole page slides off sideways, staggered by block.
  *
- * The outgoing blocks clear the screen before the incoming ones start (see the entrance
- * delays below). Overlapping them cross-dissolves two copies of the page over each other,
- * which just looks like ghosting — the brief gap is what makes it read as pulling away and
- * then coming back.
+ * The last block finishes leaving at 420ms (100ms delay + 320ms); the first arrival is held
+ * until 470ms by the delays below. The two phases never overlap, so it reads as one page
+ * leaving and then another arriving rather than the two blending together. The 50ms of empty
+ * space between them is deliberate.
  */
 ::view-transition-old(page-heading),
 ::view-transition-old(page-content),
 ::view-transition-old(page-feature) {
-	animation: orbit-out calc(var(--motion) * 360ms) var(--ease-orbit-out) both;
+	animation: orbit-out calc(var(--motion) * 320ms) var(--ease-orbit-out) both;
 }
 ::view-transition-old(page-content) {
 	animation-delay: calc(var(--motion) * 50ms);
@@ -104,21 +138,30 @@ t-view.pending {
 }
 
 /*
- * Arriving content is NOT animated here. The incoming blocks are live inside
- * ::view-transition-new(), so they already play the orbit-in declared on the elements below.
- * Animating the pseudo as well ran the same keyframes twice, about 170ms out of phase, and
- * the compounded transforms read as the animation stuttering and restarting.
+ * Arriving: the incoming blocks swing in from the opposite side, each a beat behind the last.
  *
- * The UA group animation is dropped for the same reason: it tweens each block's old box into
- * its new one, which stretches the snapshot while it is already moving.
+ * This has to be driven from the pseudo-element, not from the real element. A view transition
+ * captures the incoming content rather than showing it live, and the element's own transform
+ * is baked into that capture — so an animation declared on the element never plays during the
+ * transition, it is simply sampled once. Doing it that way made the exit invisible and turned
+ * the whole thing into two entrances in the same direction.
+ *
+ * The group animations are deliberately left at their UA default. Each group tweens its block
+ * from the old box to the new one across the transition; because the exit and entrance no
+ * longer overlap, the departing content sees nearly-old geometry and the arriving content
+ * nearly-new, so neither gets visibly stretched.
  */
 ::view-transition-new(page-heading),
 ::view-transition-new(page-content),
-::view-transition-new(page-feature),
-::view-transition-group(page-heading),
-::view-transition-group(page-content),
-::view-transition-group(page-feature) {
-	animation: none;
+::view-transition-new(page-feature) {
+	animation: orbit-in calc(var(--motion) * 480ms) var(--ease-orbit) both;
+	animation-delay: calc(var(--motion) * 470ms);
+}
+::view-transition-new(page-content) {
+	animation-delay: calc(var(--motion) * 535ms);
+}
+::view-transition-new(page-feature) {
+	animation-delay: calc(var(--motion) * 600ms);
 }
 
 /*
@@ -136,44 +179,54 @@ t-view.pending {
 }
 
 /*
- * Arrival, declared on the real elements. This is the single source of the entrance: it runs
- * on a cold page load, and during a navigation it plays live inside ::view-transition-new().
+ * Cold-load entrance only — a first visit has no outgoing page and therefore no view
+ * transition, so nothing above would animate.
  *
- * The leading delay holds each block back until the outgoing page has rotated away, and the
- * per-block offsets are what give the arrival its character.
+ * Scoped to :not([data-nav-direction]) so it cannot fire during a navigation. nav-direction.ts
+ * sets that attribute on the first navigation and it stays set for the life of the document,
+ * so from then on the ::view-transition-new() rules above are the only entrance. Without this
+ * guard both would run and the transforms would compound.
+ *
+ * No leading delay here: there is nothing to wait for on a cold load.
  */
-x-page-heading,
-x-content,
-x-feature {
-	animation: orbit-in calc(var(--motion) * 560ms) var(--ease-orbit) both;
-	animation-delay: calc(var(--motion) * 230ms);
+:root:not([data-nav-direction]) :is(x-page-heading, x-content, x-feature) {
+	animation: orbit-in calc(var(--motion) * 480ms) var(--ease-orbit) both;
 }
-x-content {
-	animation-delay: calc(var(--motion) * 300ms);
+:root:not([data-nav-direction]) x-content {
+	animation-delay: calc(var(--motion) * 65ms);
 }
-x-feature {
-	animation-delay: calc(var(--motion) * 370ms);
+:root:not([data-nav-direction]) x-feature {
+	animation-delay: calc(var(--motion) * 130ms);
 }
 
 /*
- * Travel is kept modest on purpose. A longer throw means more pixels moving per frame, and
- * on the exit — which runs while the browser is still settling after the snapshot capture —
- * that is what reads as skipping ahead rather than animating.
+ * Lateral travel carries the motion, with the depth and pitch kept as a light accent so it
+ * still reads as part of the orbit rather than a flat slide.
+ *
+ * Multiplying by --nav-dir mirrors the whole gesture: going forward the old page leaves to
+ * the left and the new one arrives from the right; going back toward Home, both reverse. The
+ * depth and pitch are deliberately NOT mirrored — those read the same either way.
+ *
+ * Neither keyframe touches opacity. The blocks travel a full viewport width, so they are
+ * genuinely gone rather than dissolved in place — fading would read as a cross-dissolve, and
+ * it is the thing that made the two pages look like they melted into each other.
+ *
+ * 105vw rather than a percentage of the element: a percentage is relative to the element's own
+ * width, which is narrower than the viewport and left part of the page still on screen.
  */
 @keyframes orbit-in {
 	from {
-		opacity: 0;
-		transform: perspective(1400px) translate3d(3%, 1.1rem, -190px) rotateY(12deg) rotateX(2deg);
+		transform: perspective(1400px) translate3d(calc(105vw * var(--nav-dir)), 0.4rem, -90px)
+			rotateY(calc(10deg * var(--nav-dir))) rotateX(1.5deg);
 	}
 	to {
-		opacity: 1;
 		transform: perspective(1400px) translate3d(0, 0, 0) rotateY(0deg) rotateX(0deg);
 	}
 }
 
 @keyframes orbit-out {
 	to {
-		opacity: 0;
-		transform: perspective(1400px) translate3d(-3%, -0.75rem, -210px) rotateY(-13deg) rotateX(2deg);
+		transform: perspective(1400px) translate3d(calc(-105vw * var(--nav-dir)), -0.3rem, -90px)
+			rotateY(calc(-10deg * var(--nav-dir))) rotateX(1.5deg);
 	}
 }
