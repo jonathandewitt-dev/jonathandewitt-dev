@@ -19,7 +19,7 @@ export const Feature = customElement(({ adoptStyleSheet, attrSignals }) => {
 const stylesheet = css`
 	:host {
 		display: block;
-		font-size: 2rem;
+		font-size: clamp(1.25rem, 4vw, 2rem);
 	}
 
 	::slotted(*) {
@@ -73,7 +73,7 @@ const stylesheet = css`
 		background: radial-gradient(circle, rgba(196, 181, 253, 0.28), transparent 65%);
 	}
 
-	.feature p {
+	::slotted(p) {
 		margin: 0;
 		font-size: 1rem;
 		line-height: 1.75;
@@ -102,7 +102,9 @@ const stylesheet = css`
 		line-height: 1;
 		letter-spacing: 0.01em;
 		text-decoration: none;
-		white-space: nowrap;
+		white-space: normal;
+		max-width: 100%;
+		box-sizing: border-box;
 		transition:
 			transform 180ms ease,
 			box-shadow 180ms ease,

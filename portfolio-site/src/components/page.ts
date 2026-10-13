@@ -1,27 +1,62 @@
 import { customElement, html, css } from 'thunderous';
 import { theme } from '../theme';
 
-export const Page = customElement(({ adoptStyleSheet }) => {
+export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
 	adoptStyleSheet(theme);
 	adoptStyleSheet(stylesheet);
+
+	let cleanup = () => {};
+	connectedCallback(() => {
+		cleanup();
+		const menu = root.querySelector<HTMLDetailsElement>('.mobile-menu');
+		const toggle = menu?.querySelector('summary');
+		if (!menu || !toggle) return;
+		const closeOnEscape = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape' || !menu.open) return;
+			menu.open = false;
+			toggle.focus();
+		};
+		const closeOnNavigation = (event: MouseEvent) => {
+			if (event.target instanceof Element && event.target.closest('a')) menu.open = false;
+		};
+		const desktop = window.matchMedia('(min-width: 40.001rem)');
+		const closeOnResize = () => {
+			if (desktop.matches) menu.open = false;
+		};
+		menu.addEventListener('keydown', closeOnEscape);
+		menu.addEventListener('click', closeOnNavigation);
+		desktop.addEventListener('change', closeOnResize);
+		cleanup = () => {
+			menu.removeEventListener('keydown', closeOnEscape);
+			menu.removeEventListener('click', closeOnNavigation);
+			desktop.removeEventListener('change', closeOnResize);
+		};
+	});
+	disconnectedCallback(() => cleanup());
+
+	const links = () => html`
+		<a href="/">Home</a>
+		<a href="/about">About Me</a>
+		<a href="/work">My Work</a>
+		<a href="/contact">Contact Me</a>
+	`;
 
 	return html`
 		<div class="page">
 			<header>
 				<slot name="header"></slot>
-				<nav class="header-nav" aria-label="Main navigation">
-					<a href="/">Home</a>
-					<a href="/about">About Me</a>
-					<a href="/work">My Work</a>
-					<a href="/contact">Contact Me</a>
-				</nav>
+				<nav class="header-nav desktop-nav" aria-label="Main navigation">${links()}</nav>
+				<details class="mobile-menu">
+					<summary><span aria-hidden="true">☰</span> Menu</summary>
+					<nav class="header-nav" aria-label="Main navigation">${links()}</nav>
+				</details>
 			</header>
 			<main>
 				<slot></slot>
 			</main>
 			<footer>
 				<nav class="footer-nav" aria-label="Footer navigation">
-					<a href="/">Home</a> | <a href="/about">About Me</a> | <a href="/work">My Work</a> |
+					<a href="/">Home</a> <a href="/about">About Me</a> <a href="/work">My Work</a>
 					<a href="/contact">Contact Me</a>
 				</nav>
 				<slot name="footer"></slot>
@@ -44,7 +79,8 @@ const stylesheet = css`
 		display: grid;
 		grid-template-rows: auto 1fr auto;
 		box-sizing: border-box;
-		min-width: 320px;
+		min-width: 0;
+		overflow-wrap: anywhere;
 		min-height: 100vh;
 		background:
 			radial-gradient(circle at top left, var(--color-accent-1), transparent 30%),
@@ -140,9 +176,11 @@ const stylesheet = css`
 	}
 
 	header {
+		min-width: 0;
 		padding: 1em 1.5em 0;
 	}
 	main {
+		min-width: 0;
 		padding: 2em 1.5em 4em;
 	}
 
@@ -228,5 +266,69 @@ const stylesheet = css`
 		outline: 2px solid color-mix(in srgb, var(--color-brand-1) 50%, white 20%);
 		outline-offset: 3px;
 		border-radius: 0.25rem;
+	}
+
+	.mobile-menu {
+		display: none;
+	}
+	.mobile-menu summary {
+		list-style: none;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-height: 44px;
+		box-sizing: border-box;
+		padding: 0.75rem 1rem;
+		border: 1px solid var(--color-surface-1-2);
+		border-radius: 1rem;
+		background: var(--color-surface-1);
+		color: var(--color-neutral-1);
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.mobile-menu summary::-webkit-details-marker {
+		display: none;
+	}
+	.mobile-menu summary:focus-visible {
+		outline: 2px solid var(--color-brand-1);
+		outline-offset: 4px;
+	}
+	@media (max-width: 40rem) {
+		.desktop-nav {
+			display: none;
+		}
+		.mobile-menu {
+			display: block;
+		}
+		.mobile-menu .header-nav {
+			flex-direction: column;
+			align-items: stretch;
+			margin-top: 0.5rem;
+			border-radius: 1rem;
+		}
+		.mobile-menu .header-nav a {
+			justify-content: flex-start;
+			min-height: 44px;
+			box-sizing: border-box;
+		}
+		header {
+			padding-inline: 1rem;
+		}
+		main {
+			padding-inline: 1rem;
+		}
+		footer {
+			padding-inline: 1rem;
+			text-align: center;
+		}
+		.footer-nav {
+			justify-content: center;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		a,
+		a::before {
+			transition: none !important;
+		}
 	}
 `;

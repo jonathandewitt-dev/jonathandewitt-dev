@@ -5,7 +5,7 @@ import { Content } from './components/content';
 import { Section } from './components/section';
 import { Link } from './components/link';
 import { List, ListItem } from './components/list';
-import { Table, TableRowGroup, TableRow, TableHeader, TableCell } from './components/table';
+import { CardGrid, Card } from './components/card-grid';
 import { Blockquote } from './components/blockquote';
 import { DescriptionList, DescriptionItem } from './components/description-list';
 
@@ -17,11 +17,8 @@ Section.define('x-section');
 Link.define('x-link');
 List.define('x-list');
 ListItem.define('x-list-item');
-Table.define('x-table');
-TableRowGroup.define('x-table-row-group');
-TableRow.define('x-table-row');
-TableHeader.define('x-table-header');
-TableCell.define('x-table-cell');
+CardGrid.define('x-card-grid');
+Card.define('x-card');
 Blockquote.define('x-blockquote');
 
 DescriptionList.define('x-description-list');

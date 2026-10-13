@@ -71,92 +71,75 @@
 			infrastructure. "Fullstack" is a loaded term, so let me give you an honest breakdown:
 		</p>
 
-		<x-table aria-label="Experience by discipline">
-			<x-table-row-group>
-				<x-table-row>
-					<x-table-header>
-						<span>Front End</span>
-						<span aria-hidden="true">🟩🟩🟩🟩🟩🟩</span>
-						<span>Principal</span>
-					</x-table-header>
-					<x-table-header>
-						<span>Back End</span>
-						<span aria-hidden="true">🟩🟩🟩🟩🟩⬛</span>
-						<span>Senior</span>
-					</x-table-header>
-					<x-table-header>
-						<span>Databases</span>
-						<span aria-hidden="true">🟩🟩🟩🟩⬛⬛</span>
-						<span>Mid-Senior</span>
-					</x-table-header>
-					<x-table-header>
-						<span>Containers</span>
-						<span aria-hidden="true">🟩🟩🟩🟩⬛⬛</span>
-						<span>Mid-Senior</span>
-					</x-table-header>
-					<x-table-header>
-						<span>Infrastructure</span>
-						<span aria-hidden="true">🟩🟩🟩⬛⬛⬛</span>
-						<span>Mid-Level</span>
-					</x-table-header>
-				</x-table-row>
-			</x-table-row-group>
-			<x-table-row-group>
-				<x-table-row>
-					<x-table-cell>
-						<em
-							>I’m comfortable across frameworks, understand their tradeoffs, and can dig into internals when
-							needed.</em
-						>
-					</x-table-cell>
-					<x-table-cell
-						><em>I use multiple languages, but focus on architecture over language-specific tricks.</em></x-table-cell
+		<x-card-grid>
+			<x-card
+				><h3 slot="heading">Front End</h3>
+				<p aria-hidden="true">🟩🟩🟩🟩🟩🟩</p>
+				<p>Principal</p>
+				<p>
+					<em
+						>I’m comfortable across frameworks, understand their tradeoffs, and can dig into internals when needed.</em
 					>
-					<x-table-cell>
-						<em
-							>I can author well-written schemas and query them. I haven't done replication or sharding yet, but I see
-							the value.</em
-						>
-					</x-table-cell>
-					<x-table-cell>
-						<em
-							>I love working with Docker, especially devcontainers. I "get" orchestration, but haven’t learned
-							Kubernetes yet.</em
-						>
-					</x-table-cell>
-					<x-table-cell>
-						<em
-							>I can navigate AWS and stand up a web server on my own. But there's a lot more to learn and I'm having
-							fun patching this gap a little at a time.</em
-						>
-					</x-table-cell>
-				</x-table-row>
-			</x-table-row-group>
-		</x-table>
+				</p></x-card
+			>
+			<x-card
+				><h3 slot="heading">Back End</h3>
+				<p aria-hidden="true">🟩🟩🟩🟩🟩⬛</p>
+				<p>Senior</p>
+				<p><em>I use multiple languages, but focus on architecture over language-specific tricks.</em></p></x-card
+			>
+			<x-card
+				><h3 slot="heading">Databases</h3>
+				<p aria-hidden="true">🟩🟩🟩🟩⬛⬛</p>
+				<p>Mid-Senior</p>
+				<p>
+					<em
+						>I can author well-written schemas and query them. I haven't done replication or sharding yet, but I see the
+						value.</em
+					>
+				</p></x-card
+			>
+			<x-card
+				><h3 slot="heading">Containers</h3>
+				<p aria-hidden="true">🟩🟩🟩🟩⬛⬛</p>
+				<p>Mid-Senior</p>
+				<p>
+					<em
+						>I love working with Docker, especially devcontainers. I "get" orchestration, but haven’t learned Kubernetes
+						yet.</em
+					>
+				</p></x-card
+			>
+			<x-card
+				><h3 slot="heading">Infrastructure</h3>
+				<p aria-hidden="true">🟩🟩🟩⬛⬛⬛</p>
+				<p>Mid-Level</p>
+				<p>
+					<em
+						>I can navigate AWS and stand up a web server on my own. But there's a lot more to learn and I'm having fun
+						patching this gap a little at a time.</em
+					>
+				</p></x-card
+			>
+		</x-card-grid>
 
 		<h3>My stacks</h3>
 
-		<x-table aria-label="My stacks">
-			<x-table-row-group>
-				<x-table-row>
-					<x-table-header>Stuff that gets people hired</x-table-header>
-					<x-table-header>Extra stuff that I enjoy</x-table-header>
-				</x-table-row>
-			</x-table-row-group>
-			<x-table-row-group>
-				<x-table-row>
-					<x-table-cell>
-						<em
-							>Windsurf, Cursor, React, Angular, Vue, Node, Java, C#, SQL, Mongo, Docker, GitLab CI, GitHub Actions,
-							AWS, Azure, GCP</em
-						>
-					</x-table-cell>
-					<x-table-cell
-						><em>PWA, Web components, Solid, Rust, GraphQL, Drizzle, Digital Ocean, Netlify, Vercel</em></x-table-cell
+		<x-card-grid>
+			<x-card
+				><h4 slot="heading">Stuff that gets people hired</h4>
+				<p>
+					<em
+						>Windsurf, Cursor, React, Angular, Vue, Node, Java, C#, SQL, Mongo, Docker, GitLab CI, GitHub Actions, AWS,
+						Azure, GCP</em
 					>
-				</x-table-row>
-			</x-table-row-group>
-		</x-table>
+				</p></x-card
+			>
+			<x-card
+				><h4 slot="heading">Extra stuff that I enjoy</h4>
+				<p><em>PWA, Web components, Solid, Rust, GraphQL, Drizzle, Digital Ocean, Netlify, Vercel</em></p></x-card
+			>
+		</x-card-grid>
 
 		<x-blockquote>
 			<p>
