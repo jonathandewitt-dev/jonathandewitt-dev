@@ -29,12 +29,26 @@ const cardStyles = css`
 	:host {
 		display: block;
 		min-width: 0;
-		padding: 1.25rem;
+		padding: 1.4rem;
 		border: 1px solid var(--color-surface-1-2);
 		border-radius: 1rem;
-		background: var(--color-surface-1);
+		/* A faint top-left sheen, as though lit by the nebula behind the page. */
+		background:
+			linear-gradient(145deg, color-mix(in srgb, var(--color-brand-1) 7%, transparent), transparent 42%),
+			var(--color-surface-1);
 		color: var(--color-page-1-c);
 		overflow-wrap: anywhere;
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		transition:
+			border-color calc(var(--motion) * 200ms) ease,
+			transform calc(var(--motion) * 200ms) ease,
+			box-shadow calc(var(--motion) * 200ms) ease;
+	}
+	:host(:hover) {
+		border-color: color-mix(in srgb, var(--color-brand-1) 42%, transparent);
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-1);
 	}
 	article,
 	header,
@@ -46,7 +60,11 @@ const cardStyles = css`
 		margin: 0;
 	}
 	::slotted([slot='heading']) {
-		font-size: 1.125rem;
+		font-family: var(--font-display);
+		font-size: 1.15rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
 		line-height: 1.4;
+		color: var(--color-neutral-1);
 	}
 `;

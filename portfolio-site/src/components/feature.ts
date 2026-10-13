@@ -35,7 +35,7 @@ const stylesheet = css`
 		border-radius: 20px;
 		border: 1px solid var(--color-surface-2-2);
 		background:
-			linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(14, 165, 233, 0.16)),
+			linear-gradient(135deg, rgba(124, 58, 237, 0.26), rgba(34, 211, 238, 0.14)),
 			linear-gradient(180deg, var(--color-surface-2), var(--color-surface-2-1));
 		backdrop-filter: blur(18px) saturate(160%);
 		-webkit-backdrop-filter: blur(18px) saturate(160%);
@@ -97,7 +97,7 @@ const stylesheet = css`
 		box-shadow:
 			0 10px 30px color-mix(in srgb, var(--color-brand-2-1) 28%, transparent),
 			inset 0 1px 0 color-mix(in srgb, white 35%, transparent);
-		color: var(--color-neutral-2);
+		color: var(--color-page-1-2);
 		font-weight: 700;
 		line-height: 1;
 		letter-spacing: 0.01em;
@@ -121,7 +121,7 @@ const stylesheet = css`
 		box-shadow:
 			0 16px 36px color-mix(in srgb, var(--color-brand-2-1) 36%, transparent),
 			inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
-		color: var(--color-neutral-2);
+		color: var(--color-page-1-2);
 	}
 
 	.feature a:active {

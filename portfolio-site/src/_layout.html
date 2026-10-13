@@ -8,8 +8,24 @@
 			name="description"
 			content="Jonathan DeWitt (Jon) builds developer tools that bridge great developer experience and the native web platform. Explore his projects, experience, and engineering philosophy."
 		/>
+		<meta name="color-scheme" content="dark" />
 		<title>Jonathan DeWitt<script expr>title !== '' ? ` | ${title}` : ''</script></title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Outfit:wght@100..900&display=swap"
+		/>
 		<link rel="stylesheet" href="/global.css" />
+		<script>
+			// Applied before first paint so a stored "reduced" choice never flashes a frame of motion.
+			try {
+				var stored = localStorage.getItem('motion');
+				if (stored === 'reduced' || stored === 'full') document.documentElement.dataset.motion = stored;
+			} catch (_) {
+				/* storage unavailable (private mode, blocked cookies) — fall back to the OS preference */
+			}
+		</script>
 	</head>
 	<body>
 		<!-- This view element is used for CSR navigation, only this element will be replaced when navigating -->

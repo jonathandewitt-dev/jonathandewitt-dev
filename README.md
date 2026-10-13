@@ -37,7 +37,7 @@ My strengths are still primarily in the front end, but I enjoy being able to wor
 
 | Stuff that gets people hired | Extra stuff that I enjoy |
 |---|---|
-| _Windsurf, Cursor, React, Angular, Vue, Node, Java, C#, SQL, Mongo, Docker, GitLab CI, GitHub Actions, AWS, Azure, GCP_ | _PWA, Web components, Solid, Rust, GraphQL, Drizzle, Digital Ocean, Netlify, Vercel_ |  
+| _Devin/Windsurf, Cursor, Codex/ChatGPT, Claude Code, React, Angular, Vue, Node, Java, C#, SQL, Mongo, Docker, GitLab CI, GitHub Actions, AWS, Azure, GCP_ | _PWA, Web components, Solid, Rust, GraphQL, Drizzle, Digital Ocean, Netlify, Vercel_ |  
 
 > [!NOTE]
 > As my experience grows, I see diminishing value in exhaustively listing all the tools I have experience using. Understand &mdash; there are a lot. Even if I try to list them all, I will inevitably miss a few. So above is a distilled list of only the most interesting and relevant items.

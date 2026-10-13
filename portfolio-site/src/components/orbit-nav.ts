@@ -1,4 +1,5 @@
 import { css, customElement, html } from 'thunderous';
+import { resolveMotion, subscribeMotion } from '../motion';
 
 const destinations = [
 	{ label: 'Home', href: '/' },
@@ -18,7 +19,14 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		const stage = root.querySelector<HTMLElement>('.stage');
 		const links = Array.from(root.querySelectorAll<HTMLAnchorElement>('.nav-link'));
 		if (!nav || !stage) return;
-		const mode = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+		// The 3D ring needs a real pointer, and it is motion by definition — so the in-page
+		// toggle has to gate it just as the OS preference does.
+		const pointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+		const mode = {
+			get matches() {
+				return pointer.matches && resolveMotion() === 'full';
+			},
+		};
 		const path = location.pathname.replace(/\/$/, '') || '/';
 		const current = destinations.findIndex((item) => item.href === path);
 		const initial = Math.max(0, current);
@@ -83,14 +91,16 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		stage.addEventListener('pointerleave', leave);
 		stage.addEventListener('focusin', focusLink);
 		stage.addEventListener('keydown', keys);
-		mode.addEventListener('change', updateMode);
+		pointer.addEventListener('change', updateMode);
+		const unsubscribeMotion = subscribeMotion(updateMode);
 		cleanup = () => {
 			cancelAnimationFrame(frame);
 			stage.removeEventListener('pointermove', track);
 			stage.removeEventListener('pointerleave', leave);
 			stage.removeEventListener('focusin', focusLink);
 			stage.removeEventListener('keydown', keys);
-			mode.removeEventListener('change', updateMode);
+			pointer.removeEventListener('change', updateMode);
+			unsubscribeMotion();
 		};
 	});
 	disconnectedCallback(() => cleanup());
@@ -151,8 +161,10 @@ const stylesheet = css`
 		padding: 0.5rem 1rem;
 		box-sizing: border-box;
 		color: inherit;
+		font-family: var(--font-display);
 		font-size: 1rem;
 		font-weight: 600;
+		letter-spacing: -0.005em;
 		text-decoration: none;
 		white-space: nowrap;
 		border-radius: 0.75rem;
@@ -202,7 +214,7 @@ const stylesheet = css`
 			border-radius: 0;
 			background: none;
 			transform: rotateY(var(--rotation));
-			transition: transform 180ms ease-out;
+			transition: transform calc(var(--motion) * 180ms) ease-out;
 		}
 		.ribbon {
 			display: block;
@@ -231,9 +243,9 @@ const stylesheet = css`
 			background: transparent;
 			border: 1px solid transparent;
 			transition:
-				background 150ms ease,
-				border-color 150ms ease,
-				color 150ms ease;
+				background calc(var(--motion) * 150ms) ease,
+				border-color calc(var(--motion) * 150ms) ease,
+				color calc(var(--motion) * 150ms) ease;
 		}
 		.nav-link[data-selected],
 		.nav-link:hover {

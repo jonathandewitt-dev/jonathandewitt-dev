@@ -35,27 +35,41 @@ const stylesheet = css`
 	hgroup {
 		display: contents;
 	}
+	/*
+	 * The headline is deliberately drawn at an extreme light weight. At display sizes a 200
+	 * reads as elegant rather than frail, and it sets up the contrast against the heavy,
+	 * tracked-out eyebrow above it.
+	 */
 	h1 {
 		margin: 0;
 		max-width: 20ch;
-		font-family: inherit;
-		font-size: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
-		font-weight: 700;
-		line-height: 1.08;
-		letter-spacing: -0.045em;
+		font-family: var(--font-display);
+		font-size: clamp(2.75rem, 1.5rem + 3.6vw, 5rem);
+		font-weight: 200;
+		line-height: 1.04;
+		letter-spacing: -0.035em;
 		text-wrap: balance;
 		overflow-wrap: anywhere;
 		padding: 0 0 1rem;
+		background: linear-gradient(176deg, #ffffff 18%, var(--color-brand-1) 72%, var(--color-brand-1-1) 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		/* Starlight bloom. Sits behind the glyphs, so it never muddies their edges. */
+		filter: drop-shadow(0 0 28px color-mix(in srgb, var(--color-brand-1) 22%, transparent));
 	}
+	/* Heavy, wide-tracked, small — the loud half of the thin/bold pairing. */
 	.subtitle {
 		display: none;
 		max-width: 42ch;
-		margin: 0;
-		color: var(--color-neutral-1-1);
-		font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
-		font-weight: 400;
-		line-height: 1.55;
-		letter-spacing: 0.015em;
+		margin: 0 0 0.9rem;
+		color: var(--color-brand-1);
+		font-family: var(--font-display);
+		font-size: clamp(0.7rem, 0.62rem + 0.26vw, 0.82rem);
+		font-weight: 700;
+		line-height: 1.5;
+		letter-spacing: 0.32em;
+		text-transform: uppercase;
 		text-wrap: balance;
 	}
 	:host([with-subtitle]) .subtitle {
@@ -63,7 +77,9 @@ const stylesheet = css`
 	}
 	:host([prominent]) h1 {
 		translate: 0 -0.3rem;
-		font-size: clamp(3rem, 1.5rem + 5vw, 6rem);
-		line-height: 1.04;
+		font-size: clamp(3.25rem, 1.5rem + 6.5vw, 8rem);
+		font-weight: 150;
+		line-height: 0.98;
+		letter-spacing: -0.045em;
 	}
 `;

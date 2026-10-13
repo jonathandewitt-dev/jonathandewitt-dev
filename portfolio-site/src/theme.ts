@@ -1,57 +1,45 @@
 import { css } from 'thunderous';
 
+/*
+ * Dark-only by design: the deep-space identity depends on luminous colour sitting on a
+ * near-black ground, which a light palette cannot reproduce. `color-scheme: dark` is set
+ * in global.css so form controls and scrollbars agree.
+ */
 export const theme = css`
 	:host {
-		--color-page-1: #0f172a;
-		--color-page-1-1: #111827;
-		--color-page-1-2: #0b1120;
-		--color-page-1-c: #eaf2ff;
-		--color-accent-1: rgba(99, 102, 241, 0.22);
-		--color-accent-1-1: rgba(14, 165, 233, 0.18);
+		/* Depths of the void — the base the whole palette is lit against. */
+		--color-page-1: #06071a;
+		--color-page-1-1: #080a22;
+		--color-page-1-2: #04050e;
+		--color-page-1-c: #e9edff;
 
-		--color-surface-1: rgba(255, 255, 255, 0.06);
-		--color-surface-1-1: rgba(255, 255, 255, 0.03);
-		--color-surface-1-2: rgba(255, 255, 255, 0.1);
-		--color-neutral-1: #e5eefc;
-		--color-neutral-1-1: #9fb0d1;
-		--color-brand-1: #8fb4ff;
-		--color-brand-1-1: #2a4692;
-		--shadow-1: 0 10px 30px rgba(0, 0, 0, 0.18);
+		--color-accent-1: rgba(124, 58, 237, 0.2);
+		--color-accent-1-1: rgba(34, 211, 238, 0.14);
 
-		--color-surface-2: rgba(255, 255, 255, 0.72);
-		--color-surface-2-1: rgba(255, 255, 255, 0.5);
-		--color-surface-2-2: rgba(255, 255, 255, 0.35);
-		--color-neutral-2: #1e293b;
-		--color-neutral-2-1: #b8c7e6;
+		/* Glass surfaces: a cool blue-white lift rather than neutral grey. */
+		--color-surface-1: rgba(148, 163, 255, 0.07);
+		--color-surface-1-1: rgba(148, 163, 255, 0.04);
+		--color-surface-1-2: rgba(168, 180, 255, 0.16);
+		--color-neutral-1: #f3f6ff;
+		--color-neutral-1-1: #a7b2d8;
+		--color-brand-1: #9db4ff;
+		--color-brand-1-1: #c4a6ff;
+		--shadow-1: 0 18px 50px rgba(2, 4, 16, 0.55);
+
+		/* Brighter panel family, used for the feature card and primary call to action. */
+		--color-surface-2: rgba(148, 163, 255, 0.12);
+		--color-surface-2-1: rgba(124, 58, 237, 0.1);
+		--color-surface-2-2: rgba(168, 180, 255, 0.22);
+		--color-neutral-2: #eef1ff;
+		--color-neutral-2-1: #a7b2d8;
 		--color-brand-2: #7dd3fc;
 		--color-brand-2-1: #c4b5fd;
-		--shadow-2: 0 18px 50px rgba(15, 23, 42, 0.35);
+		--shadow-2: 0 24px 70px rgba(2, 4, 16, 0.6);
 
-		@media (prefers-color-scheme: light) {
-			--color-page-1: #f0f4fa;
-			--color-page-1-1: #e8edf5;
-			--color-page-1-2: #f5f7fb;
-			--color-page-1-c: #1e293b;
-			--color-accent-1: rgba(99, 102, 241, 0.1);
-			--color-accent-1-1: rgba(14, 165, 233, 0.08);
-
-			--color-surface-1: rgba(255, 255, 255, 0.7);
-			--color-surface-1-1: rgba(255, 255, 255, 0.5);
-			--color-surface-1-2: rgba(99, 102, 241, 0.16);
-			--color-neutral-1: #1e293b;
-			--color-neutral-1-1: #475569;
-			--color-brand-1: #2563eb;
-			--color-brand-1-1: #7c3aed;
-			--shadow-1: 0 10px 30px rgba(51, 65, 85, 0.1);
-
-			--color-surface-2: rgba(255, 255, 255, 0.92);
-			--color-surface-2-1: rgba(245, 248, 255, 0.85);
-			--color-surface-2-2: rgba(99, 102, 241, 0.18);
-			--color-neutral-2: #1e293b;
-			--color-neutral-2-1: #475569;
-			--color-brand-2: #4f46e5;
-			--color-brand-2-1: #7c3aed;
-			--shadow-2: 0 18px 40px rgba(51, 65, 85, 0.12);
-		}
+		/* Nebula hues, shared by the background layers and accent glows. */
+		--nebula-violet: #7c3aed;
+		--nebula-magenta: #e0409a;
+		--nebula-cyan: #22d3ee;
+		--nebula-indigo: #4338ca;
 	}
 `;

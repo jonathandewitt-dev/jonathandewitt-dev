@@ -68,7 +68,8 @@ const itemStyles = css`
 		place-items: center;
 		min-height: 10rem;
 		border-radius: 1rem 0 0 1rem;
-		background: #fff;
+		/* Logos still need a light plate to read against, but pure #fff glares in deep space. */
+		background: #e8ecf8;
 		overflow: hidden;
 	}
 	img {
