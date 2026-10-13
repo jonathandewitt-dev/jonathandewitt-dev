@@ -1,5 +1,6 @@
 import { View } from 'thunderous-csr';
 import { Page } from './components/page';
+import { ProjectList, ProjectItem } from './components/project-list';
 import { PageHeading } from './components/page-heading';
 import { Crumb } from './components/crumb';
 import { Content } from './components/content';
@@ -25,3 +26,6 @@ Blockquote.define('x-blockquote');
 
 DescriptionList.define('x-description-list');
 DescriptionItem.define('x-description-item');
+
+ProjectList.define('x-project-list');
+ProjectItem.define('x-project-item');

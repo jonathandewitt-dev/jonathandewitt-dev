@@ -1,22 +1,30 @@
 <?layout href="../_layout.html">
 
 <x-content>
-	<p>You can find my company and projects here:</p>
-	<x-list>
-		<x-list-item><x-link href="https://thunder.solutions">Thunder Solutions</x-link> — my company.</x-list-item>
-		<x-list-item
-			><x-link href="https://thunderous.dev/">Thunderous</x-link> — functional web components using
-			signals.</x-list-item
+	<p>Have a look at a few of my latest projects!</p>
+	<x-project-list>
+		<x-project-item href="https://thunderous.dev/" image="/assets/projects/thunderous.png">
+			<span slot="title">Thunderous</span>
+			Functional web components using signals.
+		</x-project-item>
+		<x-project-item href="https://stormycms.com" image="/assets/projects/stormy-cms.svg" logo>
+			<span slot="title">Stormy CMS</span>
+			A modern content management system.
+		</x-project-item>
+		<x-project-item
+			href="https://www.npmjs.com/package/react-shadow-scope"
+			image="/assets/projects/react-shadow-scope.png"
 		>
-		<x-list-item>
-			<x-link href="https://www.npmjs.com/package/react-shadow-scope">React-Shadow-Scope</x-link> — shadow DOM
-			components in React.
-		</x-list-item>
-		<x-list-item
-			><x-link href="https://collabhouragile.org/">Collab Hour</x-link> — a lightweight Agile framework.</x-list-item
-		>
-		<x-list-item
-			><x-link href="">Stormy CMS</x-link> — A modern content management system.</x-list-item
-		>
-	</x-list>
+			<span slot="title">React-Shadow-Scope</span>
+			Shadow DOM components in React.
+		</x-project-item>
+		<x-project-item href="https://collabhouragile.org/" image="/assets/projects/collab-hour.jpg" cover>
+			<span slot="title">Collab Hour</span>
+			A lightweight Agile framework.
+		</x-project-item>
+		<x-project-item href="https://thunder.solutions" image="/assets/projects/thunder-solutions.gif">
+			<span slot="title">Thunder Solutions</span>
+			My company, where I build SaaS applications and developer tools.
+		</x-project-item>
+	</x-project-list>
 </x-content>
