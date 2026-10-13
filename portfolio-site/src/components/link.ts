@@ -1,7 +1,9 @@
 import { createSignal, css, customElement, html } from 'thunderous';
+import { focusRing } from '../styles';
 
 export const Link = customElement(({ adoptStyleSheet, attrSignals }) => {
 	const [href] = attrSignals['href'] ?? createSignal(null);
+	adoptStyleSheet(focusRing);
 	adoptStyleSheet(stylesheet);
 	return html`<a href="${href}"><slot></slot></a>`;
 });
@@ -21,8 +23,7 @@ const stylesheet = css`
 		color: var(--color-brand-1-1);
 		text-decoration-color: currentColor;
 	}
-	a:focus-visible {
-		outline: 2px solid var(--color-brand-1);
-		outline-offset: 3px;
+	:host {
+		--focus-ring-offset: 3px;
 	}
 `;

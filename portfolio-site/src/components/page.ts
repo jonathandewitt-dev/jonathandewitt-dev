@@ -2,9 +2,11 @@ import { customElement, html, css } from 'thunderous';
 import { theme } from '../theme';
 import { MOTION_CHANGE, resolveMotion, setMotion, type MotionPreference } from '../motion';
 import { routes } from '../routes';
+import { focusRing } from '../styles';
 
 export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
 	adoptStyleSheet(theme);
+	adoptStyleSheet(focusRing);
 	adoptStyleSheet(stylesheet);
 
 	let cleanup = () => {};
@@ -449,9 +451,8 @@ const stylesheet = css`
 		transform: translateY(0);
 	}
 
-	.header-nav a:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--color-brand-1) 65%, white 35%);
-		outline-offset: 4px;
+	.header-nav a {
+		--focus-ring-color: color-mix(in srgb, var(--color-brand-1) 65%, white 35%);
 	}
 
 	header {
@@ -517,9 +518,10 @@ const stylesheet = css`
 		transform: none;
 	}
 
-	.footer-nav a:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--color-brand-1) 50%, white 20%);
-		outline-offset: 3px;
+	.footer-nav a,
+	footer small a {
+		--focus-ring-color: color-mix(in srgb, var(--color-brand-1) 50%, white 20%);
+		--focus-ring-offset: 3px;
 	}
 
 	footer small {
@@ -542,8 +544,6 @@ const stylesheet = css`
 	}
 
 	footer small a:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--color-brand-1) 50%, white 20%);
-		outline-offset: 3px;
 		border-radius: 0.25rem;
 	}
 
@@ -577,9 +577,8 @@ const stylesheet = css`
 		color: var(--color-neutral-1);
 		border-color: color-mix(in srgb, var(--color-brand-1) 40%, transparent);
 	}
-	.motion-toggle:focus-visible {
-		outline: 2px solid var(--color-brand-1);
-		outline-offset: 3px;
+	.motion-toggle {
+		--focus-ring-offset: 3px;
 	}
 	.switch {
 		position: relative;
@@ -627,10 +626,6 @@ const stylesheet = css`
 	}
 	.mobile-menu summary::-webkit-details-marker {
 		display: none;
-	}
-	.mobile-menu summary:focus-visible {
-		outline: 2px solid var(--color-brand-1);
-		outline-offset: 4px;
 	}
 	@media (max-width: 40rem) {
 		.desktop-nav {

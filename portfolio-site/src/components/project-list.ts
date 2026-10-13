@@ -1,4 +1,5 @@
 import { createSignal, css, customElement, html } from 'thunderous';
+import { focusRing } from '../styles';
 
 export const ProjectList = customElement(({ adoptStyleSheet, internals, clientOnlyCallback }) => {
 	clientOnlyCallback(() => {
@@ -14,6 +15,7 @@ export const ProjectItem = customElement(({ adoptStyleSheet, attrSignals, intern
 	clientOnlyCallback(() => {
 		internals.role = 'listitem';
 	});
+	adoptStyleSheet(focusRing);
 	adoptStyleSheet(itemStyles);
 	return html`
 		<a class="project" href="${href}">
@@ -58,10 +60,6 @@ const itemStyles = css`
 	.project:hover {
 		border-color: var(--color-brand-1);
 		box-shadow: var(--shadow-1);
-	}
-	.project:focus-visible {
-		outline: 2px solid var(--color-brand-1);
-		outline-offset: 4px;
 	}
 	.thumbnail {
 		display: grid;

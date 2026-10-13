@@ -1,11 +1,13 @@
 import { customElement, html, css, createSignal } from 'thunderous';
 import { theme } from '../theme';
+import { focusRing } from '../styles';
 
 export const Feature = customElement(({ adoptStyleSheet, attrSignals }) => {
 	const [getHref] = attrSignals['href'] ?? createSignal('');
 	const [getButtonText] = attrSignals['buttontext'] ?? createSignal('Learn More');
 
 	adoptStyleSheet(theme);
+	adoptStyleSheet(focusRing);
 	adoptStyleSheet(stylesheet);
 
 	return html`
@@ -131,9 +133,8 @@ const stylesheet = css`
 			inset 0 1px 0 color-mix(in srgb, white 25%, transparent);
 	}
 
-	.feature a:focus-visible {
-		outline: 2px solid color-mix(in srgb, var(--color-brand-2) 65%, white 35%);
-		outline-offset: 4px;
+	.feature a {
+		--focus-ring-color: color-mix(in srgb, var(--color-brand-2) 65%, white 35%);
 	}
 
 	.feature a::after {

@@ -1,5 +1,6 @@
 import { css, customElement, html } from 'thunderous';
 import { MOTION_CHANGE, resolveMotion } from '../motion';
+import { focusRing } from '../styles';
 import { routes as destinations, routeIndex } from '../routes';
 
 const ITEM_SPREAD = 36;
@@ -7,6 +8,7 @@ const MAX_ROTATION = ((destinations.length - 1) * ITEM_SPREAD) / 2;
 const angleFor = (index: number) => index * ITEM_SPREAD - MAX_ROTATION;
 
 export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
+	adoptStyleSheet(focusRing);
 	adoptStyleSheet(stylesheet);
 	let cleanup = () => {};
 
@@ -179,10 +181,6 @@ const stylesheet = css`
 	.nav-link[aria-current='page'] {
 		background: var(--color-accent-1);
 	}
-	.nav-link:focus-visible {
-		outline: 2px solid var(--color-brand-1);
-		outline-offset: 4px;
-	}
 	.number,
 	.arrow,
 	.ribbon,
@@ -269,9 +267,10 @@ const stylesheet = css`
 			border-color: var(--color-brand-1);
 			box-shadow: 0 0 32px color-mix(in srgb, var(--color-brand-1) 30%, transparent);
 		}
-		.nav-link:focus-visible {
-			outline: 2px solid var(--color-page-1-c);
-			outline-offset: 5px;
+		/* The ring's own lit surface needs a brighter indicator than the page default. */
+		.nav-link {
+			--focus-ring-color: var(--color-page-1-c);
+			--focus-ring-offset: 5px;
 		}
 		.number {
 			display: inline;

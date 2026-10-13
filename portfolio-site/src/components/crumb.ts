@@ -1,8 +1,10 @@
 import { createSignal, css, customElement, html } from 'thunderous';
+import { focusRing } from '../styles';
 
 export const Crumb = customElement(({ adoptStyleSheet, attrSignals }) => {
 	const [href] = attrSignals['href'] ?? createSignal(null);
 	const [current] = attrSignals['current'] ?? createSignal('false');
+	adoptStyleSheet(focusRing);
 	adoptStyleSheet(stylesheet);
 
 	return html`
@@ -27,10 +29,6 @@ const stylesheet = css`
 	a:hover {
 		color: var(--color-page-1-c);
 		text-decoration: underline;
-	}
-	a:focus-visible {
-		outline: 2px solid var(--color-brand-1);
-		outline-offset: 4px;
 	}
 	a[aria-current='page'] {
 		color: var(--color-page-1-c);
