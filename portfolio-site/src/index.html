@@ -1,6 +1,7 @@
 <?layout href="_layout.html">
 
 <x-content>
+	<x-portrait src="/assets/portrait.png" alt="Jonathan DeWitt"></x-portrait>
 	<h2>Hi, I'm Jon! 👋</h2>
 	<p>This is my personal portfolio site, where I share my work, experience, and engineering philosophy.</p>
 </x-content>
@@ -12,5 +13,7 @@
 
 <script isomorphic>
 	import { Feature } from './components/feature';
+	import { Portrait } from './components/portrait';
 	Feature.define('x-feature');
+	Portrait.define('x-portrait');
 </script>

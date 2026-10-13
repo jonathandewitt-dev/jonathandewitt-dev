@@ -12,10 +12,33 @@ export const Content = customElement(({ adoptStyleSheet }) => {
  */
 const stylesheet = css`
 	:host {
-		display: block;
+		/*
+		 * flow-root, not block: this establishes a block formatting context so the floated
+		 * portrait is contained here. As a plain block it would overflow the bottom and
+		 * shorten the line boxes of whatever follows — which squeezed the feature card.
+		 */
+		display: flow-root;
 		max-width: 72ch;
 		margin-inline: auto;
 		overflow-wrap: anywhere;
+	}
+
+	/*
+	 * A floated portrait with a matching circular shape-outside, so the copy curves around it
+	 * instead of sitting in a rectangular notch. Below the breakpoint it becomes a centred
+	 * block — at narrow widths a float leaves too little room for a readable measure.
+	 */
+	::slotted(x-portrait) {
+		float: right;
+		shape-outside: circle(50%);
+		shape-margin: 1.1rem;
+		margin: 0.35rem 0 1rem 1.75rem;
+	}
+	@media (max-width: 34rem) {
+		::slotted(x-portrait) {
+			float: none;
+			margin: 0 auto 1.5rem;
+		}
 	}
 
 	::slotted(h2) {
