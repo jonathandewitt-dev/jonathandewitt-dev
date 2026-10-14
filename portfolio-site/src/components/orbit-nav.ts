@@ -371,7 +371,7 @@ const stylesheet = css`
 			cursor: default;
 			display: inline-grid;
 			top: 0;
-			translate: -50% 10%;
+			translate: -50% 0.3vw;
 			padding: 0.25rem 0.5rem;
 			margin: 0;
 			text-align: center;
@@ -380,8 +380,12 @@ const stylesheet = css`
 			line-height: 1.1;
 			color: var(--color-neutral-1);
 			opacity: 0.5;
-			transition: all calc(var(--motion) * 150ms) ease;
+			--duration: calc(var(--motion) * 150ms);
+			transition:
+				opacity var(--duration) ease,
+				font-size var(--duration) ease;
 			z-index: 1;
+			white-space: nowrap;
 		}
 		.hint:hover {
 			opacity: 1;
@@ -389,12 +393,22 @@ const stylesheet = css`
 		}
 		@media (min-width: 45em) {
 			.hint {
-				translate: -50% -20%;
+				translate: -50% -1.3vw;
 			}
 		}
 		@media (min-width: 62em) {
 			.hint {
-				translate: -50% -60%;
+				translate: -50% -2.3vw;
+			}
+		}
+		@media (min-width: 82em) {
+			.hint {
+				translate: -50% -2.1vw;
+			}
+		}
+		@media (min-width: 94em) {
+			.hint {
+				translate: -50% -1.8vw;
 			}
 		}
 		.stage {
