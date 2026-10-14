@@ -144,7 +144,7 @@ test('as a visitor, my rapid presses on the orbit nav each navigate exactly once
 		.poll(() => page.evaluate(() => (Reflect.get(window, 'orbitArrivals') as string[]).length), { timeout: 15_000 })
 		.toBe(3);
 	await expect(page).toHaveURL(/\/blog\/?$/);
-	await expect(page.locator('x-content')).toContainText('Ideas with a playground.');
+	await expect(page.locator('x-content[view-transition-name="content"]')).toContainText('Ideas with a playground.');
 });
 
 test('as a visitor, leaving a pressed nav item cancels it even if I return before releasing', async ({ page }) => {

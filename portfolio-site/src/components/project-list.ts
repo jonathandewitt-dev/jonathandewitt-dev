@@ -1,4 +1,4 @@
-import { createSignal, css, customElement, html } from 'thunderous';
+import { createSignal, css, customElement, derived, html } from 'thunderous';
 import { focusRing } from '../styles';
 
 export const ProjectList = customElement(({ adoptStyleSheet, internals, clientOnlyCallback }) => {
@@ -12,6 +12,16 @@ export const ProjectList = customElement(({ adoptStyleSheet, internals, clientOn
 export const ProjectItem = customElement(({ adoptStyleSheet, attrSignals, internals, clientOnlyCallback }) => {
 	const [href] = attrSignals['href'] ?? createSignal(null);
 	const [image] = attrSignals['image'] ?? createSignal(null);
+	const [actionText] = attrSignals['actiontext'] ?? createSignal(null);
+	const actionLabel = derived(() => actionText() ?? 'Visit project');
+	const thumbnail = derived(() => {
+		const src = image();
+		return src === null || src === ''
+			? ''
+			: html`<div class="thumbnail">
+					<img src="${src}" alt="" width="400" height="300" loading="lazy" decoding="async" />
+				</div>`;
+	});
 	clientOnlyCallback(() => {
 		internals.role = 'listitem';
 	});
@@ -19,13 +29,11 @@ export const ProjectItem = customElement(({ adoptStyleSheet, attrSignals, intern
 	adoptStyleSheet(itemStyles);
 	return html`
 		<a class="project" href="${href}">
-			<div class="thumbnail">
-				<img src="${image}" alt="" width="400" height="300" loading="lazy" decoding="async" />
-			</div>
+			${thumbnail}
 			<div class="details">
 				<h2><slot name="title"></slot></h2>
 				<p><slot></slot></p>
-				<span class="action" aria-hidden="true">Visit project <span>↗</span></span>
+				<span class="action" aria-hidden="true">${actionLabel} <span>↗</span></span>
 			</div>
 		</a>
 	`;
@@ -46,7 +54,7 @@ const itemStyles = css`
 	}
 	.project {
 		display: grid;
-		grid-template-columns: 12rem minmax(0, 1fr);
+		grid-template-columns: minmax(0, 1fr);
 		align-items: stretch;
 		border: 1px solid var(--color-surface-1-2);
 		border-radius: 1rem;
@@ -56,6 +64,9 @@ const itemStyles = css`
 		transition:
 			border-color 160ms ease,
 			box-shadow 160ms ease;
+	}
+	:host([image]:not([image=''])) .project {
+		grid-template-columns: 12rem minmax(0, 1fr);
 	}
 	.project:hover {
 		border-color: var(--color-brand-1);
@@ -112,7 +123,8 @@ const itemStyles = css`
 		margin-left: 0.25rem;
 	}
 	@media (max-width: 36rem) {
-		.project {
+		.project,
+		:host([image]:not([image=''])) .project {
 			grid-template-columns: minmax(0, 1fr);
 		}
 		.thumbnail {

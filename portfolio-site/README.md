@@ -121,6 +121,13 @@ The primary navigation order is: Home → Blog → About Me → My Work → Resu
 how to request private contact details by email. The Blog page uses `x-feature[pending]` for a disabled, clearly labelled placeholder action.
 The résumé feature links to the public PDF at `src/assets/Jonathan_Dewitt_Resume_Public.pdf`.
 
+The Blog page also lists external writing in a separate supplemental block after its original introduction
+and placeholder feature. Its six Medium entries come from `https://medium.com/feed/@jon.dewitt`; its two
+LinkedIn articles are listed on `https://www.linkedin.com/in/jonathandewittus`. Titles, publication dates,
+and canonical links are curated in `src/blog/index.html`, newest first. These are static entries, not a live
+feed. Reuse `x-project-list`/`x-project-item` for the cards: `image` is optional, and `actiontext` customizes
+the action label while existing project cards keep “Visit project.”
+
 Transitions require an explicit `view-transition-name` attribute in HTML. Supported identities are
 `heading`, `content`, `feature`, and `supplement`; the document stylesheet maps these to the corresponding
 `page-*` snapshot names. Each identity must occur at most once per rendered page. Mark the outer block

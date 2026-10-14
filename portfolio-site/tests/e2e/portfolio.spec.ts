@@ -81,7 +81,7 @@ test('as a motion-sensitive visitor, I can open the hamburger, dismiss it, and n
 	for (let index = 0; index <= routeIndex('/blog'); index++) await page.keyboard.press('Tab');
 	await page.keyboard.press('Enter');
 	await expect(page).toHaveURL(/\/blog\/?$/);
-	await expect(page.locator('x-content')).toContainText('Ideas with a playground.');
+	await expect(page.locator('x-content[view-transition-name="content"]')).toContainText('Ideas with a playground.');
 	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
 });
 
@@ -179,7 +179,7 @@ test('as a reader, I can reach the blog from the main navigation using the keybo
 	await page.keyboard.press('Enter');
 	await expect(page).toHaveURL(/\/blog\/?$/);
 	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/blog')));
-	await expect(page.locator('x-content')).toContainText('Ideas with a playground.');
+	await expect(page.locator('x-content[view-transition-name="content"]')).toContainText('Ideas with a playground.');
 });
 
 test('as a hiring reviewer, I can access the public résumé PDF', async ({ page, request }) => {
@@ -201,4 +201,32 @@ test('as a hiring reviewer, I can access the public résumé PDF', async ({ page
 	);
 	await page.keyboard.press('Enter');
 	await nativeRequest;
+});
+
+test('as a reader, I can discover external articles below the blog introduction and follow one to its publisher', async ({
+	page,
+	request,
+}) => {
+	const response = await request.get('/blog');
+	const markup = await response.text();
+	expect(markup).not.toContain('{{callback:');
+	expect(markup).not.toContain('{{signal:');
+	await page.goto('/blog');
+	await expect(page.locator('x-content[view-transition-name="content"]')).toContainText('Ideas with a playground.');
+	await expect(page.locator('x-feature[pending]')).toContainText('Still setting the stage.');
+	const articles = page.locator('x-content[view-transition-name="supplement"]');
+	await expect(articles.getByRole('heading', { name: 'External articles' })).toBeVisible();
+	await expect(articles.locator('x-project-item')).toHaveCount(8);
+	await expect(articles.locator('x-project-item[actiontext="Read on LinkedIn"]')).toHaveCount(2);
+	await expect(articles.locator('x-project-item[actiontext="Read on Medium"]')).toHaveCount(6);
+	await expect(articles).toContainText('Agile Sucks!');
+	await expect(articles).toContainText('Mastering Presentation Components');
+	const article = articles.locator('x-project-item').filter({ hasText: 'Software Estimates Are Hurting You' });
+	const href = await article.getAttribute('href');
+	if (href === null) throw new Error('External article has no publisher URL');
+	await page.route(href, (route) => route.fulfill({ contentType: 'text/html', body: '<title>Publisher</title>' }));
+	const outgoing = page.waitForRequest((request) => request.url() === href && request.resourceType() === 'document');
+	await article.click();
+	await outgoing;
+	await expect(page).toHaveURL(href);
 });
