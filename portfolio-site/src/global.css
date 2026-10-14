@@ -72,16 +72,16 @@ body {
  * These names have to live on light-DOM elements; view-transition-name has no effect inside a
  * shadow root, so x-page's own header/main/footer cannot be captured.
  */
-x-page-heading {
+[view-transition-name='heading'] {
 	view-transition-name: page-heading;
 }
-x-content {
+[view-transition-name='content'] {
 	view-transition-name: page-content;
 }
-x-content[view-transition-name='supplement'] {
+[view-transition-name='supplement'] {
 	view-transition-name: page-supplement;
 }
-x-feature {
+[view-transition-name='feature'] {
 	view-transition-name: page-feature;
 }
 
@@ -89,6 +89,11 @@ x-feature {
    captures the outgoing snapshot. Standing the ambient layers down frees that frame budget. */
 t-view.pending {
 	--motion-play: paused;
+}
+
+/* Snapshot overlays must let input reach the live navigation beneath them. */
+::view-transition {
+	pointer-events: none;
 }
 
 /* The arrival delays below are set so no block starts entering until every block has
@@ -133,13 +138,19 @@ t-view.pending {
  * navigation and never clears it, which keeps this from compounding with the pseudo-element
  * animation on every subsequent one.
  */
-:root:not([data-nav-direction]) :is(x-page-heading, x-content, x-feature) {
+:root:not([data-nav-direction])
+	:is(
+		[view-transition-name='heading'],
+		[view-transition-name='content'],
+		[view-transition-name='supplement'],
+		[view-transition-name='feature']
+	) {
 	animation: orbit-in calc(var(--motion) * 480ms) var(--ease-orbit) both;
 }
-:root:not([data-nav-direction]) x-content {
+:root:not([data-nav-direction]) :is([view-transition-name='content'], [view-transition-name='supplement']) {
 	animation-delay: calc(var(--motion) * 65ms);
 }
-:root:not([data-nav-direction]) x-feature {
+:root:not([data-nav-direction]) [view-transition-name='feature'] {
 	animation-delay: calc(var(--motion) * 130ms);
 }
 

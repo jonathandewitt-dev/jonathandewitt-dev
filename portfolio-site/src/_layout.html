@@ -36,8 +36,10 @@
 
 		<!-- This view element is used for CSR navigation, only this element will be replaced when navigating -->
 		<t-view id="main-content">
+			<span slot="loading-overlay" aria-hidden="true"></span>
 			<x-page expr:prominent="pathname === '/'">
 				<x-page-heading
+					view-transition-name="heading"
 					slot="header"
 					expr:prominent="pathname === '/'"
 					expr:with-subtitle="pathname === '/'"
@@ -61,6 +63,7 @@
 							: '';
 					</script>
 				</x-page-heading>
+				<x-orbit-nav slot="navigation"></x-orbit-nav>
 
 				<slot></slot>
 			</x-page>

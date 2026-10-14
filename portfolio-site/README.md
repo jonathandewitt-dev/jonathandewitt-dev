@@ -118,9 +118,55 @@ The primary navigation order is: Home → Blog → About Me → My Work → Resu
 how to request private contact details by email. The Blog page uses `x-feature[pending]` for a disabled, clearly labelled placeholder action.
 The résumé feature links to the public PDF at `src/assets/Jonathan_Dewitt_Resume_Public.pdf`.
 
-A page may have one primary `x-content` and one `x-content[intent="supplement"]`. The supplemental
-block has its own transition name, `page-supplement`, and shares the primary text's animation timing.
-This keeps both sections independently animated without rearranging them or duplicating a snapshot name.
+Transitions require an explicit `view-transition-name` attribute in HTML. Supported identities are
+`heading`, `content`, `feature`, and `supplement`; the document stylesheet maps these to the corresponding
+`page-*` snapshot names. Each identity must occur at most once per rendered page. Mark the outer block
+that should move, leaving nested components unmarked. Both snapshot transitions and cold-load entrances
+use this opt-in, so cloning or nesting an unmarked component does not create another animated surface.
+The supplemental block shares the primary text's animation timing.
+
+### Orbit navigation
+
+`x-orbit-nav` is supplied to the page's `navigation` slot from the layout. It uses the same controls on
+mouse and touch devices. Full motion enables the 3D ring; reduced motion retains ordinary flat links.
+Mouse movement over the stage smoothly rotates the ring from its current position. Leaving the stage
+preserves the visible angle. Hover uses a constant rotation per pixel: forty percent of the frame's width
+covers the entire route range, regardless of the starting angle or direction. At either end, reversing
+responds immediately without dead travel. Only the active
+page and the hovered link receive a highlight. Re-entering starts from the retained position without a jump.
+Pressing freezes any hover easing
+before hit-testing the item, so a fast click cannot lose its target. Dragging starts from the current angle, stays
+within the route range, and preserves its final position across releases. Hover resumes from that position
+on the next mouse movement. The nav region owns its touch
+gestures; page scrolling remains available outside it.
+
+Activation requires a mouse-down/up or touch-start/end sequence on the same item. Leaving the pressed
+item, cancelling the touch, or moving six pixels into a drag permanently cancels that press. Moving
+between spans within one link does not cancel it. Keyboard/assistive activation and modified mouse
+clicks retain normal link behavior. Keyboard focus centers its destination immediately; drag rotation also updates without easing,
+so a pressed target cannot slide away while the browser waits to animate. Mouse focus does not recenter the ring
+during a press.
+
+`src/orbit-position.ts` retains the visible angle on the document and centers the destination over
+420ms when native navigation starts. Its animation survives CSR replacing the nav host: the incoming
+component begins at the current angle and follows the same `orbit:rotation` events. Hover, drag, or
+keyboard interaction interrupts centering from the visible position. Reduced motion centers immediately.
+
+Accepted ordinary activations emit the cancelable, composed `nav:request` event with `{ href }`.
+`src/navigation-request.ts`, started from the registry, serializes these requests using the Navigation
+API's completion promise. This avoids Thunderous CSR's pending-view guard discarding a later destination.
+`patches/thunderous-csr@0.0.8.patch` makes that completion include the final HTML validation/fallback; the
+upstream detached callback could otherwise replace a newer page with stale content. The patch also emits
+`view:transition-ready` from the native snapshot-ready promise, keeping visual motion independent of that
+validation delay. Retain the patch until the dependency supplies equivalent lifecycle behavior.
+A normal anchor activation is the fallback when the request service is unavailable. The layout supplies
+an empty `loading-overlay` slot to `t-view` so its default blocking overlay cannot swallow further nav
+presses while a destination loads. The native `::view-transition` overlay also passes pointer events through
+to the live nav while content snapshots animate.
+
+`src/orbit-gesture.ts` owns pure drag/activation decisions and is included in the 100% unit coverage scope.
+Browser stories exercise native mouse/touch input, repeated drags, cancellation, and delayed navigation
+through the public host and events, without opening closed shadow roots.
 
 ### Travelling between pages
 
@@ -136,8 +182,8 @@ with complementary horizontal masks to blend their clouds across boundaries with
 travel 35, 65, and 100vw per route for stars, and 50vw for clouds. Scroll parallax composes
 independently, with the foreground moving up to 560px over the page's scroll range.
 
-Voyage begins on `navigatesuccess`, after CSR prepares the content snapshots, rather than at
-link activation while the destination is still loading. `--nav-duration` is measured from
+Voyage begins on `view:transition-ready`, when CSR's content snapshots are ready to animate, rather than at
+link activation while the destination is still loading. `navigatesuccess` is also observed for fallback cases. `--nav-duration` is measured from
 the active content animations, including their delays (up to 1080ms), so scenery settles with
 the last incoming block. `--ease-voyage` combines the departure curve's initial
 control point with the arrival curve's final control point, accelerating into travel and
@@ -179,8 +225,9 @@ selector can see where a navigation is headed.
 
 Two platform constraints shape the implementation:
 
-- **`view-transition-name` has no effect inside a shadow root.** The named elements are therefore the
-  light-DOM content blocks (`x-page-heading`, `x-content`, `x-feature`), not `x-page`'s own layout elements.
+- **`view-transition-name` has no effect inside a shadow root.** Snapshot names are therefore
+  applied in the document stylesheet to light-DOM hosts explicitly marked with `view-transition-name`,
+  rather than to elements inside component layouts.
   The document root has `view-transition-name: none`, so the
   nav, footer, and persistent starfield remain live while named content snapshots travel above them.
 - **A view transition captures the incoming element rather than showing it live**, and the element's own
@@ -217,7 +264,7 @@ pnpm exec playwright install chromium
 On Linux CI hosts without browser libraries, use `pnpm exec playwright install --with-deps chromium`.
 An existing compatible Chrome installation can be used with `PLAYWRIGHT_CHANNEL=chrome pnpm test`.
 
-- **Units:** `tests/unit/` uses native `node:test`. Coverage includes `src/result.ts` and `src/routes.ts`,
+- **Units:** `tests/unit/` uses native `node:test`. Coverage includes `src/result.ts`, `src/routes.ts`, and `src/orbit-gesture.ts`,
   with 100% line, branch, and function thresholds. Add pure modules to the coverage scope as they gain tests;
   this threshold describes the tested scope, not the whole application.
 - **Components:** `stories/` and `.storybook/` use the Web Components/Vite framework. Storybook's Vitest

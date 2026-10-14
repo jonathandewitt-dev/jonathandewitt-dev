@@ -1,6 +1,6 @@
 <?layout href="../_layout.html">
 
-<x-content>
+<x-content view-transition-name="content">
 	<h2>The short version.</h2>
 	<p>
 		Experience, leadership, and a few very deep rabbit holes. My résumé is the quick tour.<br />
@@ -9,7 +9,11 @@
 	</p>
 </x-content>
 
-<x-feature href="/assets/Jonathan_Dewitt_Resume_Public.pdf" buttontext="View résumé (PDF)">
+<x-feature
+	view-transition-name="feature"
+	href="/assets/Jonathan_Dewitt_Resume_Public.pdf"
+	buttontext="View résumé (PDF)"
+>
 	<p><strong>My résumé, at a glance.</strong></p>
 	<p>A public copy of my résumé, ready to read or save.</p>
 </x-feature>

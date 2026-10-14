@@ -14,7 +14,10 @@ export default defineConfig({
 	},
 	projects: [
 		{ name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-		{ name: 'mobile', use: { ...devices['Desktop Chrome'], viewport: { width: 375, height: 812 }, isMobile: true } },
+		{
+			name: 'mobile',
+			use: { ...devices['Desktop Chrome'], viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true },
+		},
 	],
 	webServer: {
 		command: 'pnpm build && pnpm exec serve dist --listen tcp://127.0.0.1:4173',

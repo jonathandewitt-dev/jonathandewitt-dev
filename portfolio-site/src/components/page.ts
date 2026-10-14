@@ -12,7 +12,6 @@ export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, d
 	let cleanup = () => {};
 	connectedCallback(() => {
 		cleanup();
-		// Each feature registers its own teardown, so one missing element cannot strand another.
 		const teardowns: (() => void)[] = [];
 		cleanup = () => {
 			for (const teardown of teardowns.splice(0)) teardown();
@@ -35,30 +34,6 @@ export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, d
 				document.removeEventListener(MOTION_CHANGE, renderMotion);
 			});
 		}
-
-		const menu = root.querySelector<HTMLDetailsElement>('.mobile-menu');
-		const toggle = menu?.querySelector('summary');
-		if (menu === null || toggle === undefined || toggle === null) return;
-		const closeOnEscape = (event: KeyboardEvent) => {
-			if (event.key !== 'Escape' || !menu.open) return;
-			menu.open = false;
-			toggle.focus();
-		};
-		const closeOnNavigation = (event: MouseEvent) => {
-			if (event.target instanceof Element && event.target.closest('a') !== null) menu.open = false;
-		};
-		const desktop = window.matchMedia('(min-width: 40.001rem)');
-		const closeOnResize = () => {
-			if (desktop.matches) menu.open = false;
-		};
-		menu.addEventListener('keydown', closeOnEscape);
-		menu.addEventListener('click', closeOnNavigation);
-		desktop.addEventListener('change', closeOnResize);
-		teardowns.push(() => {
-			menu.removeEventListener('keydown', closeOnEscape);
-			menu.removeEventListener('click', closeOnNavigation);
-			desktop.removeEventListener('change', closeOnResize);
-		});
 	});
 	disconnectedCallback(() => cleanup());
 
@@ -72,11 +47,7 @@ export const Page = customElement(({ adoptStyleSheet, root, connectedCallback, d
 			</button>
 			<header>
 				<slot name="header"></slot>
-				<x-orbit-nav class="desktop-nav"></x-orbit-nav>
-				<details class="mobile-menu">
-					<summary><span aria-hidden="true">☰</span> Menu</summary>
-					<nav class="header-nav" aria-label="Main navigation">${links()}</nav>
-				</details>
+				<slot name="navigation"></slot>
 			</header>
 			<main>
 				<slot></slot>
@@ -133,80 +104,6 @@ const stylesheet = css`
 	footer {
 		position: relative;
 		z-index: 1;
-	}
-
-	.header-nav {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-		align-items: center;
-		padding: 0.75rem 1rem;
-		border: 1px solid var(--color-surface-1-2);
-		border-radius: 999px;
-		background: linear-gradient(
-			135deg,
-			color-mix(in srgb, var(--color-surface-1) 88%, transparent),
-			color-mix(in srgb, var(--color-surface-1-1) 92%, transparent)
-		);
-		backdrop-filter: blur(18px) saturate(160%);
-		-webkit-backdrop-filter: blur(18px) saturate(160%);
-		box-shadow: var(--shadow-1);
-	}
-
-	.header-nav a {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0.7rem 1rem;
-		border-radius: 999px;
-		color: var(--color-neutral-1);
-		font-weight: 600;
-		line-height: 1;
-		letter-spacing: 0.01em;
-		text-decoration: none;
-		transition:
-			transform 180ms ease,
-			background 180ms ease,
-			box-shadow 180ms ease,
-			color 180ms ease;
-	}
-
-	.header-nav a::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		background: linear-gradient(135deg, var(--color-brand-1), var(--color-brand-1-1));
-		opacity: 0;
-		transform: scale(0.96);
-		transition:
-			opacity 180ms ease,
-			transform 180ms ease;
-		z-index: -1;
-	}
-
-	.header-nav a:hover,
-	.header-nav a:focus-visible {
-		color: var(--color-neutral-1);
-		transform: translateY(-1px);
-		box-shadow:
-			0 10px 24px color-mix(in srgb, var(--color-brand-1-1) 22%, transparent),
-			inset 0 1px 0 color-mix(in srgb, white 30%, transparent);
-	}
-
-	.header-nav a:hover::before,
-	.header-nav a:focus-visible::before {
-		opacity: 1;
-		transform: scale(1);
-	}
-
-	.header-nav a:active {
-		transform: translateY(0);
-	}
-
-	.header-nav a {
-		--focus-ring-color: color-mix(in srgb, var(--color-brand-1) 65%, white 35%);
 	}
 
 	header {
@@ -360,45 +257,7 @@ const stylesheet = css`
 		translate: 0.875rem -50%;
 	}
 
-	.mobile-menu {
-		display: none;
-	}
-	.mobile-menu summary {
-		list-style: none;
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		min-height: 44px;
-		box-sizing: border-box;
-		padding: 0.75rem 1rem;
-		border: 1px solid var(--color-surface-1-2);
-		border-radius: 1rem;
-		background: var(--color-surface-1);
-		color: var(--color-neutral-1);
-		font-weight: 600;
-		cursor: pointer;
-	}
-	.mobile-menu summary::-webkit-details-marker {
-		display: none;
-	}
 	@media (max-width: 40rem) {
-		.desktop-nav {
-			display: none;
-		}
-		.mobile-menu {
-			display: block;
-		}
-		.mobile-menu .header-nav {
-			flex-direction: column;
-			align-items: stretch;
-			margin-top: 0.5rem;
-			border-radius: 1rem;
-		}
-		.mobile-menu .header-nav a {
-			justify-content: flex-start;
-			min-height: 44px;
-			box-sizing: border-box;
-		}
 		header {
 			padding-inline: 1rem;
 		}

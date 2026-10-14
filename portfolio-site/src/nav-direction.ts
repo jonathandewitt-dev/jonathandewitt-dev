@@ -53,7 +53,7 @@ export const startNavDirection = (): (() => void) => {
 		document.dispatchEvent(new CustomEvent(NAV_DIRECTION, { detail: { direction } }));
 	};
 
-	// CSR completes navigation after the content swap's snapshots are ready to animate.
+	// Snapshot readiness starts the voyage; navigation completion also covers abort/fallback cases.
 	const onArrival = () => {
 		const endTimes = document
 			.getAnimations()
@@ -69,9 +69,11 @@ export const startNavDirection = (): (() => void) => {
 		}
 		publishVoyage(routeIndex(location.pathname));
 	};
+	document.addEventListener('view:transition-ready', onArrival);
 	navigation.addEventListener('navigate', onNavigate);
 	navigation.addEventListener('navigatesuccess', onArrival);
 	return () => {
+		document.removeEventListener('view:transition-ready', onArrival);
 		navigation.removeEventListener('navigate', onNavigate);
 		navigation.removeEventListener('navigatesuccess', onArrival);
 	};

@@ -1,0 +1,250 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 1247d78f65353a19205494c871ecba76ada32b9d..403424dd9d1f82c3a9779bb40c46f7bc20254b7c 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -144,11 +144,16 @@ var View = (0, import_thunderous.customElement)(
+               );
+               elementRef.remove();
+             } else {
+-              await document.startViewTransition(() => {
++              const transition = document.startViewTransition(() => {
+                 const childNodes = Array.from(destinationViewElement.childNodes).map((n) => n.cloneNode(true));
+                 elementRef.replaceChildren(...childNodes);
+                 logger.debug(`THUNDEROUS-CSR: Replaced view content for "${elementRef.id}"`);
+-              }).updateCallbackDone;
++              });
++              transition.ready.then(
++                () => document.dispatchEvent(new CustomEvent("view:transition-ready")),
++                (error) => document.dispatchEvent(new CustomEvent("view:transition-error", { detail: error }))
++              );
++              await transition.updateCallbackDone;
+             }
+             setStatus("ready");
+           }
+@@ -294,41 +299,45 @@ if (!globalThis.__GLOBAL_THUNDEROUS_VIEW_REGISTERED || parent.__GLOBAL_THUNDEROU
+           }).catch(state.destResolvers.reject);
+           const destinationDocument = await state.destResolvers.promise;
+           patchHead(destinationDocument.head);
+-          queueMicrotask(() => {
+-            requestAnimationFrame(async () => {
+-              const renderAll = () => {
+-                return document.startViewTransition(() => {
+-                  document.body.replaceChildren(...Array.from(destinationDocument.body.childNodes));
+-                });
+-              };
+-              const viewTagName = viewRegistry.getTagName(View) ?? "t-view";
+-              const views = document.querySelectorAll(viewTagName);
+-              if (views.length === 0) {
+-                logger.debug("THUNDEROUS-CSR: No views found, replacing entire body element");
+-                await renderAll().updateCallbackDone;
+-                return;
+-              }
+-              const viewPromises = [];
+-              views.forEach((view) => viewPromises.push(view.finished));
+-              await Promise.all(viewPromises);
+-              const { valid, htmlSrc, htmlDest } = await validateHTML(event.destination.url).catch((error) => {
+-                logger.error("THUNDEROUS-CSR: Unknown error while validating HTML.\n\n", error);
+-                return { valid: false, htmlSrc: "", htmlDest: "" };
+-              });
+-              if (valid) return;
+-              const diffRange = 50;
+-              let diffIdx = 0;
+-              for (const c of htmlSrc) {
+-                if (c === htmlDest.charAt(diffIdx)) {
+-                  diffIdx++;
+-                  continue;
+-                }
+-                break;
+-              }
+-              let startIdx = diffIdx - diffRange;
+-              if (startIdx < 0) startIdx = 0;
+-              console.warn(
+-                `THUNDEROUS-CSR: The rendered content does not match the server HTML after the partial update. Replacing the entire document instead.
++          await new Promise((resolve) => requestAnimationFrame(resolve));
++          const renderAll = () => {
++            const transition = document.startViewTransition(() => {
++              document.body.replaceChildren(...Array.from(destinationDocument.body.childNodes));
++            });
++            transition.ready.then(
++              () => document.dispatchEvent(new CustomEvent("view:transition-ready")),
++              (error) => document.dispatchEvent(new CustomEvent("view:transition-error", { detail: error }))
++            );
++            return transition;
++          };
++          const viewTagName = viewRegistry.getTagName(View) ?? "t-view";
++          const views = document.querySelectorAll(viewTagName);
++          if (views.length === 0) {
++            logger.debug("THUNDEROUS-CSR: No views found, replacing entire body element");
++            await renderAll().updateCallbackDone;
++            return;
++          }
++          const viewPromises = [];
++          views.forEach((view) => viewPromises.push(view.finished));
++          await Promise.all(viewPromises);
++          const { valid, htmlSrc, htmlDest } = await validateHTML(event.destination.url).catch((error) => {
++            logger.error("THUNDEROUS-CSR: Unknown error while validating HTML.\n\n", error);
++            return { valid: false, htmlSrc: "", htmlDest: "" };
++          });
++          if (valid) return;
++          const diffRange = 50;
++          let diffIdx = 0;
++          for (const c of htmlSrc) {
++            if (c === htmlDest.charAt(diffIdx)) {
++              diffIdx++;
++              continue;
++            }
++            break;
++          }
++          let startIdx = diffIdx - diffRange;
++          if (startIdx < 0) startIdx = 0;
++          console.warn(
++            `THUNDEROUS-CSR: The rendered content does not match the server HTML after the partial update. Replacing the entire document instead.
+ 
+ EXPECTED:
+ %c${htmlDest.slice(startIdx, diffIdx + diffRange)}
+@@ -337,14 +346,12 @@ EXPECTED:
+ %c${htmlSrc.slice(startIdx, diffIdx + diffRange)}
+ %c${" ".repeat(diffIdx - startIdx)}^ Mismatched HTML here
+ `,
+-                "color: cornflowerblue",
+-                "color: unset",
+-                "color: cornflowerblue",
+-                "color: red"
+-              );
+-              renderAll();
+-            });
+-          });
++            "color: cornflowerblue",
++            "color: unset",
++            "color: cornflowerblue",
++            "color: red"
++          );
++          await renderAll().updateCallbackDone;
+         }
+       });
+     });
+diff --git a/dist/index.js b/dist/index.js
+index e94b7edf30a10ca7879f7a88b47f64964b6400c7..86f60c5d078e946ca697df8f01b96f6219f9f7a9 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -117,11 +117,16 @@ var View = customElement(
+               );
+               elementRef.remove();
+             } else {
+-              await document.startViewTransition(() => {
++              const transition = document.startViewTransition(() => {
+                 const childNodes = Array.from(destinationViewElement.childNodes).map((n) => n.cloneNode(true));
+                 elementRef.replaceChildren(...childNodes);
+                 logger.debug(`THUNDEROUS-CSR: Replaced view content for "${elementRef.id}"`);
+-              }).updateCallbackDone;
++              });
++              transition.ready.then(
++                () => document.dispatchEvent(new CustomEvent("view:transition-ready")),
++                (error) => document.dispatchEvent(new CustomEvent("view:transition-error", { detail: error }))
++              );
++              await transition.updateCallbackDone;
+             }
+             setStatus("ready");
+           }
+@@ -267,41 +272,45 @@ if (!globalThis.__GLOBAL_THUNDEROUS_VIEW_REGISTERED || parent.__GLOBAL_THUNDEROU
+           }).catch(state.destResolvers.reject);
+           const destinationDocument = await state.destResolvers.promise;
+           patchHead(destinationDocument.head);
+-          queueMicrotask(() => {
+-            requestAnimationFrame(async () => {
+-              const renderAll = () => {
+-                return document.startViewTransition(() => {
+-                  document.body.replaceChildren(...Array.from(destinationDocument.body.childNodes));
+-                });
+-              };
+-              const viewTagName = viewRegistry.getTagName(View) ?? "t-view";
+-              const views = document.querySelectorAll(viewTagName);
+-              if (views.length === 0) {
+-                logger.debug("THUNDEROUS-CSR: No views found, replacing entire body element");
+-                await renderAll().updateCallbackDone;
+-                return;
+-              }
+-              const viewPromises = [];
+-              views.forEach((view) => viewPromises.push(view.finished));
+-              await Promise.all(viewPromises);
+-              const { valid, htmlSrc, htmlDest } = await validateHTML(event.destination.url).catch((error) => {
+-                logger.error("THUNDEROUS-CSR: Unknown error while validating HTML.\n\n", error);
+-                return { valid: false, htmlSrc: "", htmlDest: "" };
+-              });
+-              if (valid) return;
+-              const diffRange = 50;
+-              let diffIdx = 0;
+-              for (const c of htmlSrc) {
+-                if (c === htmlDest.charAt(diffIdx)) {
+-                  diffIdx++;
+-                  continue;
+-                }
+-                break;
+-              }
+-              let startIdx = diffIdx - diffRange;
+-              if (startIdx < 0) startIdx = 0;
+-              console.warn(
+-                `THUNDEROUS-CSR: The rendered content does not match the server HTML after the partial update. Replacing the entire document instead.
++          await new Promise((resolve) => requestAnimationFrame(resolve));
++          const renderAll = () => {
++            const transition = document.startViewTransition(() => {
++              document.body.replaceChildren(...Array.from(destinationDocument.body.childNodes));
++            });
++            transition.ready.then(
++              () => document.dispatchEvent(new CustomEvent("view:transition-ready")),
++              (error) => document.dispatchEvent(new CustomEvent("view:transition-error", { detail: error }))
++            );
++            return transition;
++          };
++          const viewTagName = viewRegistry.getTagName(View) ?? "t-view";
++          const views = document.querySelectorAll(viewTagName);
++          if (views.length === 0) {
++            logger.debug("THUNDEROUS-CSR: No views found, replacing entire body element");
++            await renderAll().updateCallbackDone;
++            return;
++          }
++          const viewPromises = [];
++          views.forEach((view) => viewPromises.push(view.finished));
++          await Promise.all(viewPromises);
++          const { valid, htmlSrc, htmlDest } = await validateHTML(event.destination.url).catch((error) => {
++            logger.error("THUNDEROUS-CSR: Unknown error while validating HTML.\n\n", error);
++            return { valid: false, htmlSrc: "", htmlDest: "" };
++          });
++          if (valid) return;
++          const diffRange = 50;
++          let diffIdx = 0;
++          for (const c of htmlSrc) {
++            if (c === htmlDest.charAt(diffIdx)) {
++              diffIdx++;
++              continue;
++            }
++            break;
++          }
++          let startIdx = diffIdx - diffRange;
++          if (startIdx < 0) startIdx = 0;
++          console.warn(
++            `THUNDEROUS-CSR: The rendered content does not match the server HTML after the partial update. Replacing the entire document instead.
+ 
+ EXPECTED:
+ %c${htmlDest.slice(startIdx, diffIdx + diffRange)}
+@@ -310,14 +319,12 @@ EXPECTED:
+ %c${htmlSrc.slice(startIdx, diffIdx + diffRange)}
+ %c${" ".repeat(diffIdx - startIdx)}^ Mismatched HTML here
+ `,
+-                "color: cornflowerblue",
+-                "color: unset",
+-                "color: cornflowerblue",
+-                "color: red"
+-              );
+-              renderAll();
+-            });
+-          });
++            "color: cornflowerblue",
++            "color: unset",
++            "color: cornflowerblue",
++            "color: red"
++          );
++          await renderAll().updateCallbackDone;
+         }
+       });
+     });

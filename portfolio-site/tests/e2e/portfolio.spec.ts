@@ -12,7 +12,7 @@ test('as a visitor, I can open every main destination directly and read its cont
 	] as const) {
 		await page.goto(path);
 		await expect(page.locator('x-page')).toContainText(text);
-		await expect(page.locator('html')).toHaveAttribute('style', `--voyage: ${routeIndex(path)}`);
+		await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex(path)));
 		expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 	}
 });
@@ -56,8 +56,7 @@ test('as a hiring reviewer, I can find the portfolio from the résumé page', as
 	await page.emulateMedia({ reducedMotion: 'no-preference' });
 	await page.goto('/resume');
 	await page.evaluate(() => {
-		const navigation = (window as unknown as { navigation: EventTarget }).navigation;
-		navigation.addEventListener('navigatesuccess', () => {
+		document.addEventListener('view:transition-ready', () => {
 			const deadline = performance.now() + 1500;
 			const recordAnimations = () => {
 				const names = document
@@ -87,14 +86,11 @@ test('as a hiring reviewer, I can find the portfolio from the résumé page', as
 	await expect.poll(() => page.evaluate(() => Reflect.get(window, 'resumeTransitionAnimations'))).toContain('orbit-in');
 });
 
-test('as a reader, I can reach the blog from the main navigation using the keyboard', async ({ page }, testInfo) => {
+test('as a reader, I can reach the blog from the main navigation using the keyboard', async ({ page }) => {
 	await page.goto('/');
 	await page.keyboard.press('Tab');
 	await page.keyboard.press('Tab');
-	if (testInfo.project.name === 'mobile') {
-		await page.keyboard.press('Enter');
-		await page.keyboard.press('Tab');
-	}
+
 	for (let index = 0; index < routeIndex('/blog'); index++) await page.keyboard.press('Tab');
 	await page.keyboard.press('Enter');
 	await expect(page).toHaveURL(/\/blog\/?$/);

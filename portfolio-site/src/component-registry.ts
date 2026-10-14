@@ -15,6 +15,8 @@ import { Blockquote } from './components/blockquote';
 import { DescriptionList, DescriptionItem } from './components/description-list';
 import { startMotion } from './motion';
 import { startNavDirection } from './nav-direction';
+import { startNavigationRequests } from './navigation-request';
+import { startOrbitPosition } from './orbit-position';
 
 View.define('t-view');
 Page.define('x-page');
@@ -46,4 +48,6 @@ ProjectItem.define('x-project-item');
 if (typeof window !== 'undefined') {
 	startMotion();
 	startNavDirection();
+	startNavigationRequests();
+	startOrbitPosition();
 }

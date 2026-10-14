@@ -19,7 +19,7 @@
 		"format:fix": "prettier --write . --list-different",
 		"typecheck": "tsc --noEmit",
 		"test": "pnpm test:unit && pnpm test:components && pnpm test:e2e",
-		"test:unit": "node --test --experimental-test-coverage --test-coverage-include=src/result.ts --test-coverage-include=src/routes.ts --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 tests/unit/*.test.ts",
+		"test:unit": "node --test --experimental-test-coverage --test-coverage-include=src/result.ts --test-coverage-include=src/routes.ts --test-coverage-include=src/orbit-gesture.ts --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 tests/unit/*.test.ts",
 		"test:components": "vitest run --config vitest.config.ts",
 		"test:e2e": "playwright test",
 		"storybook": "storybook dev --port 6006 --no-open --disable-telemetry",

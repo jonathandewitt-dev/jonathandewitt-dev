@@ -4,3 +4,5 @@ allowBuilds:
   type-fns: true
 minimumReleaseAgeExclude:
   - thunderous-server@0.0.14 || 0.0.16 || 0.0.17
+patchedDependencies:
+  thunderous-csr@0.0.8: patches/thunderous-csr@0.0.8.patch

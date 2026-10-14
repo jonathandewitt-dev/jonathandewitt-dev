@@ -1,11 +1,13 @@
 import { css, customElement, html } from 'thunderous';
 import { MOTION_CHANGE, resolveMotion } from '../motion';
 import { focusRing } from '../styles';
+import { safeTry } from '../result';
+import { NAV_REQUEST } from '../navigation-request';
+import { moveOrbitGesture, finishOrbitGesture, type OrbitGesture } from '../orbit-gesture';
 import { routes as destinations, routeIndex } from '../routes';
+import { MAX_ROTATION, angleFor, ORBIT_ROTATION, readOrbitRotation, type OrbitRotationEvent } from '../orbit-position';
 
-const ITEM_SPREAD = 36;
-const MAX_ROTATION = ((destinations.length - 1) * ITEM_SPREAD) / 2;
-const angleFor = (index: number) => index * ITEM_SPREAD - MAX_ROTATION;
+const HOVER_TRAVEL_FRACTION = 0.4;
 
 export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
 	adoptStyleSheet(focusRing);
@@ -14,57 +16,199 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 
 	connectedCallback(() => {
 		cleanup();
+		if (!(root instanceof ShadowRoot)) return;
 		const nav = root.querySelector<HTMLElement>('nav');
 		const stage = root.querySelector<HTMLElement>('.stage');
 		const links = Array.from(root.querySelectorAll<HTMLAnchorElement>('.nav-link'));
-		if (!nav || !stage) return;
-		// The 3D ring needs a real pointer, and it is motion by definition — so the in-page
-		// toggle has to gate it just as the OS preference does.
-		const pointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-		const mode = {
-			get matches() {
-				return pointer.matches && resolveMotion() === 'full';
-			},
-		};
-		const current = routeIndex(location.pathname);
-		const initial = Math.max(0, current);
-		let selected = -1;
-		let frame = 0;
-		let pointerX = 0;
+		if (nav === null || stage === null) return;
+		const initial = Math.max(0, routeIndex(location.pathname));
+		let rotation = readOrbitRotation(-angleFor(initial));
+		let press: { kind: 'mouse' | 'touch'; identifier: number; gesture: OrbitGesture } | null = null;
+		let activating = false;
+		let modifiedRelease: HTMLAnchorElement | null = null;
+		let hover: { x: number; rotation: number } | null = null;
+		let hoverFrame = 0;
+		let hoverTarget = rotation;
+		let hoverTime = 0;
 
-		// The resting highlight only; while the pointer is over the stage, CSS :hover on the
-		// real links owns the lit state so it can never disagree with what is under the cursor.
-		const select = (index: number) => {
-			if (selected === index) return;
-			selected = index;
-			links.forEach((link, i) => link.toggleAttribute('data-selected', i === index));
+		const paint = (next: number, publish = true) => {
+			rotation = next;
+			stage.style.setProperty('--rotation', `${rotation}deg`);
+			if (publish)
+				document.dispatchEvent(new CustomEvent(ORBIT_ROTATION, { detail: { rotation, source: 'interaction' } }));
 		};
-		const rotateTo = (index: number) => {
-			select(index);
-			stage.style.setProperty('--rotation', `${-angleFor(index)}deg`);
+		const itemAt = (x: number, y: number): number | null => {
+			const element = root.elementFromPoint(x, y);
+			const link = element?.closest<HTMLAnchorElement>('.nav-link') ?? null;
+			const index = link === null ? -1 : links.indexOf(link);
+			return index === -1 ? null : index;
 		};
-		links.forEach((link, index) => {
-			if (index === current) link.setAttribute('aria-current', 'page');
-		});
+		const stopHover = () => {
+			cancelAnimationFrame(hoverFrame);
+			hoverFrame = 0;
+			hover = null;
+		};
+		const animateHover = (time: number) => {
+			const elapsed = Math.max(0, time - hoverTime);
+			hoverTime = time;
+			const next = rotation + (hoverTarget - rotation) * (1 - Math.exp(-elapsed / 60));
+			if (Math.abs(hoverTarget - next) < 0.02) {
+				paint(hoverTarget);
+				hoverFrame = 0;
+			} else {
+				paint(next);
+				hoverFrame = requestAnimationFrame(animateHover);
+			}
+		};
+		const hoverMove = (event: MouseEvent) => {
+			if (press !== null || event.buttons !== 0 || !nav.hasAttribute('data-enhanced')) return;
+			if (hover === null) hover = { x: event.clientX, rotation };
+			const bounds = stage.getBoundingClientRect();
+			if (bounds.width <= 0) return;
+			const delta = event.clientX - hover.x;
+			hoverTarget = Math.max(
+				-MAX_ROTATION,
+				Math.min(MAX_ROTATION, hover.rotation - (delta * 2 * MAX_ROTATION) / (bounds.width * HOVER_TRAVEL_FRACTION)),
+			);
+			hover = { x: event.clientX, rotation: hoverTarget };
+			if (hoverFrame === 0) {
+				hoverTime = performance.now();
+				hoverFrame = requestAnimationFrame(animateHover);
+			}
+		};
+		const cancel = () => {
+			stopHover();
+			press = null;
+			stage.removeAttribute('data-interacting');
+		};
 		const updateMode = () => {
-			nav.toggleAttribute('data-enhanced', mode.matches);
-			rotateTo(initial);
+			cancel();
+			nav.toggleAttribute('data-enhanced', resolveMotion() === 'full');
+			paint(rotation, false);
 		};
-		const track = (event: PointerEvent) => {
-			if (!mode.matches || event.pointerType !== 'mouse') return;
-			pointerX = event.clientX;
-			if (frame) return;
-			frame = requestAnimationFrame(() => {
-				frame = 0;
-				const bounds = stage.getBoundingClientRect();
-				const progress = Math.max(0, Math.min(1, (pointerX - bounds.left) / bounds.width));
-				select(-1);
-				stage.style.setProperty('--rotation', `${MAX_ROTATION - progress * MAX_ROTATION * 2}deg`);
-			});
+		const onRotation = (event: Event) => {
+			const detail = (event as OrbitRotationEvent).detail;
+			if (detail.source !== 'navigation') return;
+			stopHover();
+			paint(detail.rotation, false);
+		};
+		const begin = (kind: 'mouse' | 'touch', identifier: number, x: number, y: number) => {
+			cancel();
+			modifiedRelease = null;
+			stage.setAttribute('data-interacting', '');
+			paint(rotation);
+			press = {
+				kind,
+				identifier,
+				gesture: {
+					origin: itemAt(x, y),
+					startX: x,
+					startY: y,
+					startRotation: rotation,
+					rotation,
+					cancelled: false,
+					dragging: false,
+				},
+			};
+		};
+		const move = (x: number, y: number) => {
+			if (press === null) return;
+			press = {
+				...press,
+				gesture: moveOrbitGesture(press.gesture, {
+					x,
+					y,
+					item: itemAt(x, y),
+					width: stage.getBoundingClientRect().width,
+					limit: MAX_ROTATION,
+				}),
+			};
+			if (nav.hasAttribute('data-enhanced')) paint(press.gesture.rotation);
+		};
+		const activate = (link: HTMLAnchorElement) => {
+			const unhandled = link.dispatchEvent(
+				new CustomEvent(NAV_REQUEST, { detail: { href: link.href }, bubbles: true, composed: true, cancelable: true }),
+			);
+			if (unhandled === false) return;
+			activating = true;
+			const fallback = safeTry(() => link.click());
+			activating = false;
+			if (fallback.ok === false) document.dispatchEvent(new CustomEvent('nav:error', { detail: fallback.error }));
+		};
+		const release = (x: number, y: number, modified: boolean) => {
+			if (press === null) return;
+			move(x, y);
+			const destination = finishOrbitGesture(press.gesture, itemAt(x, y));
+			cancel();
+			const link = destination === null ? undefined : links[destination];
+			if (link === undefined) return;
+			if (modified) modifiedRelease = link;
+			else activate(link);
+		};
+		const mouseDown = (event: MouseEvent) => {
+			if (event.button !== 0) return;
+			begin('mouse', 0, event.clientX, event.clientY);
+		};
+		const mouseMove = (event: MouseEvent) => {
+			if (press?.kind === 'mouse') move(event.clientX, event.clientY);
+		};
+		const mouseUp = (event: MouseEvent) => {
+			if (event.button === 0 && press?.kind === 'mouse')
+				release(event.clientX, event.clientY, event.ctrlKey || event.metaKey || event.shiftKey || event.altKey);
+		};
+		const leaveItem = (event: MouseEvent) => {
+			if (press === null || press.kind !== 'mouse' || press.gesture.origin === null) return;
+			const origin = links[press.gesture.origin];
+			if (event.currentTarget !== origin) return;
+			if (event.relatedTarget instanceof Node && origin?.contains(event.relatedTarget) === true) return;
+			press = { ...press, gesture: { ...press.gesture, cancelled: true } };
+		};
+		const touchStart = (event: TouchEvent) => {
+			if (event.touches.length !== 1) {
+				cancel();
+				return;
+			}
+			const touch = event.changedTouches[0];
+			if (touch === undefined) return;
+			if (event.cancelable) event.preventDefault();
+			begin('touch', touch.identifier, touch.clientX, touch.clientY);
+		};
+		const touchMove = (event: TouchEvent) => {
+			if (press?.kind !== 'touch') return;
+			const identifier = press.identifier;
+			const touch = Array.from(event.changedTouches).find((entry) => entry.identifier === identifier);
+			if (touch === undefined) return;
+			if (event.cancelable) event.preventDefault();
+			move(touch.clientX, touch.clientY);
+		};
+		const touchEnd = (event: TouchEvent) => {
+			if (press?.kind !== 'touch') return;
+			const identifier = press.identifier;
+			const touch = Array.from(event.changedTouches).find((entry) => entry.identifier === identifier);
+			if (touch === undefined) return;
+			if (event.cancelable) event.preventDefault();
+			release(touch.clientX, touch.clientY, false);
+		};
+		const click = (event: MouseEvent) => {
+			const target = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('.nav-link') : null;
+			if (target === null || activating) return;
+			if (event.detail === 0) {
+				if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+				event.preventDefault();
+				activate(target);
+				return;
+			}
+			if (modifiedRelease === target) {
+				modifiedRelease = null;
+				return;
+			}
+			event.preventDefault();
 		};
 		const focusLink = (event: FocusEvent) => {
+			if (press !== null) return;
+			stopHover();
 			const index = links.indexOf(event.target as HTMLAnchorElement);
-			if (index !== -1) rotateTo(index);
+			if (index !== -1) paint(-angleFor(index));
 		};
 		const keys = (event: KeyboardEvent) => {
 			const index = links.indexOf(event.target as HTMLAnchorElement);
@@ -78,27 +222,53 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 			event.preventDefault();
 			links[next]?.focus({ preventScroll: true });
 		};
-		const leave = () => {
-			cancelAnimationFrame(frame);
-			frame = 0;
-			const focused = links.findIndex((link) => link.matches(':focus'));
-			rotateTo(focused === -1 ? initial : focused);
-		};
+		const preventDrag = (event: DragEvent) => event.preventDefault();
+		links.forEach((link, index) => {
+			if (index === routeIndex(location.pathname)) link.setAttribute('aria-current', 'page');
+			link.addEventListener('mouseout', leaveItem);
+			link.addEventListener('mouseleave', leaveItem);
+		});
 		updateMode();
-		stage.addEventListener('pointermove', track);
-		stage.addEventListener('pointerleave', leave);
+		stage.addEventListener('mousedown', mouseDown);
+		stage.addEventListener('mousemove', hoverMove);
+		stage.addEventListener('mouseleave', stopHover);
+		document.addEventListener('mousemove', mouseMove);
+		document.addEventListener('mouseup', mouseUp);
+		stage.addEventListener('touchstart', touchStart, { passive: false });
+		stage.addEventListener('touchmove', touchMove, { passive: false });
+		stage.addEventListener('touchend', touchEnd, { passive: false });
+		stage.addEventListener('touchcancel', cancel);
+		stage.addEventListener('click', click);
+		stage.addEventListener('dragstart', preventDrag);
+		stage.addEventListener('contextmenu', cancel);
 		stage.addEventListener('focusin', focusLink);
 		stage.addEventListener('keydown', keys);
-		pointer.addEventListener('change', updateMode);
+		window.addEventListener('blur', cancel);
 		document.addEventListener(MOTION_CHANGE, updateMode);
+		document.addEventListener(ORBIT_ROTATION, onRotation);
 		cleanup = () => {
-			cancelAnimationFrame(frame);
-			stage.removeEventListener('pointermove', track);
-			stage.removeEventListener('pointerleave', leave);
+			cancel();
+			links.forEach((link) => {
+				link.removeEventListener('mouseout', leaveItem);
+				link.removeEventListener('mouseleave', leaveItem);
+			});
+			stage.removeEventListener('mousedown', mouseDown);
+			stage.removeEventListener('mousemove', hoverMove);
+			stage.removeEventListener('mouseleave', stopHover);
+			document.removeEventListener('mousemove', mouseMove);
+			document.removeEventListener('mouseup', mouseUp);
+			stage.removeEventListener('touchstart', touchStart);
+			stage.removeEventListener('touchmove', touchMove);
+			stage.removeEventListener('touchend', touchEnd);
+			stage.removeEventListener('touchcancel', cancel);
+			stage.removeEventListener('click', click);
+			stage.removeEventListener('dragstart', preventDrag);
+			stage.removeEventListener('contextmenu', cancel);
 			stage.removeEventListener('focusin', focusLink);
 			stage.removeEventListener('keydown', keys);
-			pointer.removeEventListener('change', updateMode);
+			window.removeEventListener('blur', cancel);
 			document.removeEventListener(MOTION_CHANGE, updateMode);
+			document.removeEventListener(ORBIT_ROTATION, onRotation);
 		};
 	});
 	disconnectedCallback(() => cleanup());
@@ -123,6 +293,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 					</div>
 				</div>
 			</div>
+			<p class="hint">Hover or drag to explore · Click or tap to visit</p>
 		</nav>
 	`;
 });
@@ -184,12 +355,25 @@ const stylesheet = css`
 	.number,
 	.arrow,
 	.ribbon,
-	.shadow {
+	.shadow,
+	.hint {
 		display: none;
 	}
 
 	nav[data-enhanced] {
+		.hint {
+			display: block;
+			margin: 0;
+			text-align: center;
+			font-family: var(--font-body);
+			font-size: 0.75rem;
+			line-height: 1.5;
+			color: var(--color-neutral-1-1);
+		}
 		.stage {
+			touch-action: none;
+			user-select: none;
+			cursor: grab;
 			position: relative;
 			width: 100%;
 			max-width: 72rem;
@@ -227,8 +411,11 @@ const stylesheet = css`
 			border-radius: 0;
 			background: none;
 			transform: rotateY(var(--rotation));
-			transition: transform calc(var(--motion) * 180ms) ease-out;
 		}
+		.stage[data-interacting] {
+			cursor: grabbing;
+		}
+
 		.ribbon {
 			display: block;
 		}
@@ -260,7 +447,7 @@ const stylesheet = css`
 				border-color calc(var(--motion) * 150ms) ease,
 				color calc(var(--motion) * 150ms) ease;
 		}
-		.nav-link[data-selected],
+		.nav-link[aria-current='page'],
 		.nav-link:hover {
 			background: var(--color-brand-1);
 			color: var(--color-page-1);
