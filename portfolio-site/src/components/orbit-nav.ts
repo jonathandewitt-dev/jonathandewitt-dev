@@ -371,7 +371,7 @@ const stylesheet = css`
 			cursor: default;
 			display: inline-grid;
 			top: 0;
-			translate: -50% -60%;
+			translate: -50% 10%;
 			padding: 0.25rem 0.5rem;
 			margin: 0;
 			text-align: center;
@@ -386,6 +386,16 @@ const stylesheet = css`
 		.hint:hover {
 			opacity: 1;
 			font-size: 1rem;
+		}
+		@media (min-width: 45em) {
+			.hint {
+				translate: -50% -20%;
+			}
+		}
+		@media (min-width: 62em) {
+			.hint {
+				translate: -50% -60%;
+			}
 		}
 		.stage {
 			touch-action: none;
