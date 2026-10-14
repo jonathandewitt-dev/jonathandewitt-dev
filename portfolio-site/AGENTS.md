@@ -106,6 +106,7 @@ Prefer a TDD approach. That is, you should write a failing test case and then im
 Any test that interacts with the DOM, shared state, or some external object, is considered integration, and should _avoid_ overlapping with unit tests that only test a pure function's input and output. Both are important, but units should be the majority.
 
 Always use the Node testing library for unit tests.
+
 Use the most appropriate tool for each type of integration test:
 
 #### Types of Integration
