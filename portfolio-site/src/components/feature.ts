@@ -13,7 +13,8 @@ export const Feature = customElement(({ adoptStyleSheet, attrSignals }) => {
 	return html`
 		<div class="feature">
 			<slot></slot>
-			${getHref() !== '' ? html`<a href=${getHref()}>${getButtonText()}</a>` : ''}
+			<a href="${getHref}">${getButtonText}</a>
+			<button type="button" disabled>${getButtonText}</button>
 		</div>
 	`;
 });
@@ -84,7 +85,8 @@ const stylesheet = css`
 		text-wrap: pretty;
 	}
 
-	.feature a {
+	.feature a,
+	.feature button {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -100,6 +102,8 @@ const stylesheet = css`
 			0 10px 30px color-mix(in srgb, var(--color-brand-2-1) 28%, transparent),
 			inset 0 1px 0 color-mix(in srgb, white 35%, transparent);
 		color: var(--color-page-1-2);
+		font-family: inherit;
+		font-size: inherit;
 		font-weight: 700;
 		line-height: 1;
 		letter-spacing: 0.01em;
@@ -113,6 +117,21 @@ const stylesheet = css`
 			filter 180ms ease,
 			border-color 180ms ease,
 			color 180ms ease;
+	}
+
+	/* Both actions exist in static HTML so pending state does not depend on hydration. */
+	.feature button,
+	:host([pending]) .feature a {
+		display: none;
+	}
+	:host([pending]) .feature button {
+		display: inline-flex;
+	}
+	.feature button:disabled {
+		background: var(--color-surface-2);
+		color: var(--color-neutral-2-1);
+		box-shadow: none;
+		cursor: default;
 	}
 
 	.feature a:hover,

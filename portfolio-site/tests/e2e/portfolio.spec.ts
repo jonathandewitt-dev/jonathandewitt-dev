@@ -1,15 +1,18 @@
 import { expect, test } from '@playwright/test';
+import { routeIndex } from '../../src/routes.ts';
 
 test('as a visitor, I can open every main destination directly and read its content', async ({ page }) => {
-	for (const [path, coordinate, text] of [
-		['/', '0', "Hi, I'm Jon!"],
-		['/about', '1', 'Nice to meet you!'],
-		['/work', '2', 'My Work'],
-		['/contact', '3', 'Want to talk about developer tools'],
+	for (const [path, text] of [
+		['/', "Hi, I'm Jon!"],
+		['/about', 'Nice to meet you!'],
+		['/work', 'My Work'],
+		['/resume', 'The short version'],
+		['/blog', 'Ideas with a playground'],
+		['/contact', 'Want to talk about developer tools'],
 	] as const) {
 		await page.goto(path);
 		await expect(page.locator('x-page')).toContainText(text);
-		await expect(page.locator('html')).toHaveAttribute('style', `--voyage: ${coordinate}`);
+		await expect(page.locator('html')).toHaveAttribute('style', `--voyage: ${routeIndex(path)}`);
 		expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 	}
 });
@@ -42,9 +45,34 @@ test('as a visitor, I can follow a breadcrumb home and go back while keeping my 
 	);
 	await page.goBack();
 	await expect(page).toHaveURL(/\/about\/?$/);
-	await expect(page.locator('html')).toHaveCSS('--voyage', '1');
+	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/about')));
 	await expect(page.locator('html')).toHaveAttribute('data-nav-direction', 'forward');
 	expect(await page.evaluate(() => document.querySelector('x-cosmos') === Reflect.get(window, 'originalCosmos'))).toBe(
 		true,
 	);
+});
+
+test('as a hiring reviewer, I can find the portfolio from the résumé page', async ({ page }) => {
+	await page.goto('/resume');
+	await expect(page.locator('x-blockquote')).toContainText('home address and phone number');
+	await expect(page.locator('x-blockquote x-link[href="mailto:jon@jonathandewitt.dev"]')).toContainText('emailing me');
+	await page.locator('x-link[href="/work"]').click();
+	await expect(page).toHaveURL(/\/work\/?$/);
+	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/work')));
+	await expect(page.locator('x-project-list')).toBeVisible();
+});
+
+test('as a reader, I can reach the blog from the main navigation using the keyboard', async ({ page }, testInfo) => {
+	await page.goto('/');
+	await page.keyboard.press('Tab');
+	await page.keyboard.press('Tab');
+	if (testInfo.project.name === 'mobile') {
+		await page.keyboard.press('Enter');
+		await page.keyboard.press('Tab');
+	}
+	for (let index = 0; index < routeIndex('/blog'); index++) await page.keyboard.press('Tab');
+	await page.keyboard.press('Enter');
+	await expect(page).toHaveURL(/\/blog\/?$/);
+	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/blog')));
+	await expect(page.locator('x-content')).toContainText('Ideas with a playground.');
 });

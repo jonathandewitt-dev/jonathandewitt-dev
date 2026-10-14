@@ -113,6 +113,12 @@ guard because that module is isomorphic. Each publishes two ways:
 | Nav direction | `data-nav-direction`  | `--nav-dir`                 | `nav:direction`     |
 | Voyage        | —                     | `--voyage`                  | —                   |
 
+The primary navigation order is: Home → Blog → About Me → My Work → Resume → Contact Me.
+`/blog` introduces the future standalone post experiences. `/resume` links readers to the portfolio and explains
+how to request private contact details by email. Both use `x-feature[pending]` for a disabled, clearly labelled
+placeholder action. When the redacted PDF is available, replace the résumé feature's `pending` attribute with
+an `href` to the public file and set its `buttontext` to a download label.
+
 ### Travelling between pages
 
 `--voyage` is the destination's index in `routes`, treated as a coordinate: each page sits at

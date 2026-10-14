@@ -1,5 +1,6 @@
 import { View } from 'thunderous-csr';
 import { Page } from './components/page';
+import { Feature } from './components/feature';
 import { OrbitNav } from './components/orbit-nav';
 import { ProjectList, ProjectItem } from './components/project-list';
 import { PageHeading } from './components/page-heading';
@@ -17,6 +18,7 @@ import { startNavDirection } from './nav-direction';
 
 View.define('t-view');
 Page.define('x-page');
+Feature.define('x-feature');
 OrbitNav.define('x-orbit-nav');
 PageHeading.define('x-page-heading');
 Crumb.define('x-crumb');

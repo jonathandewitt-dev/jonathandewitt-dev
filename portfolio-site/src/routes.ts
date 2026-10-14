@@ -9,8 +9,10 @@ export type Route = {
  */
 export const routes: Route[] = [
 	{ label: 'Home', href: '/' },
+	{ label: 'Blog', href: '/blog' },
 	{ label: 'About Me', href: '/about' },
 	{ label: 'My Work', href: '/work' },
+	{ label: 'Resume', href: '/resume' },
 	{ label: 'Contact Me', href: '/contact' },
 ];
 
