@@ -328,10 +328,11 @@ const stylesheet = css`
 	.ring {
 		display: flex;
 		flex-wrap: wrap;
+		justify-content: center;
 		gap: 0.75rem;
 		padding: 0.75rem 1rem;
 		border: 1px solid var(--color-surface-1-2);
-		border-radius: 999px;
+		border-radius: 0.75rem;
 		background: var(--color-surface-1);
 	}
 	.nav-link {

@@ -201,8 +201,8 @@ const stylesheet = css`
 	/* Pinned so the control is reachable without scrolling to find it. */
 	.motion-toggle {
 		position: fixed;
-		top: 1rem;
-		left: 1rem;
+		top: 0.5rem;
+		left: 0.5rem;
 		z-index: 10;
 		display: inline-flex;
 		align-items: center;
