@@ -76,5 +76,6 @@ const stylesheet = css`
 		font-weight: 150;
 		line-height: 0.98;
 		letter-spacing: -0.045em;
+		padding-bottom: 3rem;
 	}
 `;

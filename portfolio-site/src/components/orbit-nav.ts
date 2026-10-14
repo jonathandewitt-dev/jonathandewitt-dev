@@ -275,7 +275,10 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 
 	return html`
 		<nav aria-label="Main navigation">
-			<p class="hint">Hover or drag to explore · Click or tap to visit</p>
+			<p class="hint">
+				<span>Hover or drag to explore</span>
+				<span>Click or tap to visit</span>
+			</p>
 			<div class="stage">
 				<div class="shadow" aria-hidden="true"></div>
 				<div class="tilt">
@@ -366,23 +369,22 @@ const stylesheet = css`
 		.hint {
 			position: absolute;
 			cursor: default;
-			display: inline;
-			top: -0.75rem;
-			translate: -50%;
+			display: inline-grid;
+			top: 0;
+			translate: -50% -60%;
 			padding: 0.25rem 0.5rem;
 			margin: 0;
 			text-align: center;
 			font-family: var(--font-body);
 			font-size: 0.75rem;
-			line-height: 1.5;
-			color: var(--color-neutral-1-1);
-			opacity: 0.7;
+			line-height: 1.1;
+			color: var(--color-neutral-1);
+			opacity: 0.5;
 			transition: all calc(var(--motion) * 150ms) ease;
 			z-index: 1;
 		}
 		.hint:hover {
 			opacity: 1;
-			top: -1rem;
 			font-size: 1rem;
 		}
 		.stage {
