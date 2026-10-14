@@ -11,6 +11,16 @@ export default defineConfig([
 		},
 	},
 	{
-		ignores: ['package-lock.json', 'node_modules/', 'dist/', '**/*.tmp.*'],
+		ignores: [
+			'package-lock.json',
+			'node_modules/',
+			'dist/',
+			'storybook-static/',
+			'coverage/',
+			'.test-results/',
+			'playwright-report/',
+			'test-results/',
+			'**/*.tmp.*',
+		],
 	},
 ]);

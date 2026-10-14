@@ -85,15 +85,11 @@ I'm rather particular about design systems, so I'll outline only my less popular
 
 ## Handling Errors
 
-> In the next prompt, add error-handling utilities and native Node tests to validate their behavior, and remove this note. Mimic Rust's `Result<T, E>` type using discriminated unions, so that errors can be caught and returned as `Err` variant `Result` types. This will allow errors with a possibility of throwing to be explicitly marked by their return type in a public contract, while TypeScript will naturally flag unhandled error conditions. A `safeTry()` utility is preferred, along with `asyncSafeTry()` and `AsyncResult<T, E>`.
-
 You should never write code that risks a hidden unhandled error. Wrap every uncertain API so that the error becomes a safe and visible type contract. Be especially cautious around native browser APIs or other globals that are capable of throwing errors, such as `JSON.parse()`.
 
 ## Testing
 
 ### Stack and Strategy
-
-> Tests have not yet been written and dependencies have not yet been installed. In the next prompt, add the necessary dependencies and write some tests to establish a foundation, then remove this note. Make sure you set up coverage-tracking for at least the unit tests, and set a reasonable starting minimum threshold. Add all test outputs to gitignore and favor JSON and CLI text reports over HTML or other formats.
 
 Prefer a TDD approach. That is, you should write a failing test case and then implement the code until it passes. As coverage improves, please increase the minimum threshold so it never drops below that again. The target is 100%.
 

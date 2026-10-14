@@ -6,15 +6,21 @@ This application uses Thunderous web components, static HTML generation, and cli
 
 Run application commands from `portfolio-site/`. Use pnpm and preserve `pnpm-lock.yaml`.
 
-| Command                          | Purpose                                                 |
-| -------------------------------- | ------------------------------------------------------- |
-| `pnpm install --frozen-lockfile` | Install the locked dependencies                         |
-| `pnpm dev`                       | Start the Thunderous development server, backed by Vite |
-| `pnpm build`                     | Generate the static site in `dist/`                     |
-| `pnpm start`                     | Serve the existing `dist/` with `serve`; build first    |
-| `pnpm typecheck`                 | Check TypeScript without emitting files                 |
-| `pnpm lint`                      | Run ESLint                                              |
-| `pnpm format`                    | Check formatting with Prettier                          |
+| Command                          | Purpose                                                   |
+| -------------------------------- | --------------------------------------------------------- |
+| `pnpm install --frozen-lockfile` | Install the locked dependencies                           |
+| `pnpm dev`                       | Start the Thunderous development server, backed by Vite   |
+| `pnpm build`                     | Generate the static site in `dist/`                       |
+| `pnpm start`                     | Serve the existing `dist/` with `serve`; build first      |
+| `pnpm test`                      | Run unit, Storybook component, and Playwright E2E tests   |
+| `pnpm test:unit`                 | Run native Node TypeScript tests with coverage thresholds |
+| `pnpm test:components`           | Run Storybook stories in a browser with Vitest            |
+| `pnpm test:e2e`                  | Build the site and run desktop/mobile user stories        |
+| `pnpm storybook`                 | Develop components in Storybook at port 6006              |
+| `pnpm build:storybook`           | Generate the static component explorer                    |
+| `pnpm typecheck`                 | Check TypeScript without emitting files                   |
+| `pnpm lint`                      | Run ESLint                                                |
+| `pnpm format`                    | Check formatting with Prettier                            |
 
 - `thunderous` supplies functional custom elements, HTML/CSS templates, signals, and declarative shadow DOM rendering.
 - `thunderous-server` supplies the CLI, HTML layouts and expressions, static generation, TypeScript transpilation,
@@ -105,6 +111,41 @@ guard because that module is isomorphic. Each publishes two ways:
 | ------------- | --------------------- | --------------------------- | ------------------- |
 | Motion        | `data-motion`         | `--motion`, `--motion-play` | `motion:change`     |
 | Nav direction | `data-nav-direction`  | `--nav-dir`                 | `nav:direction`     |
+| Voyage        | —                     | `--voyage`                  | —                   |
+
+### Travelling between pages
+
+`--voyage` is the destination's index in `routes`, treated as a coordinate: each page sits at
+its own point in space. `x-cosmos` transitions to that position and stays there, so a navigation
+carries the viewer somewhere new rather than returning to where it began. Navigating back
+retraces the same ground, because position reflects place rather than elapsed time.
+
+The field covers one viewport width per primary route. Star tiles keep their pixel dimensions,
+so extending the field preserves density and star size. Each region repeats viewport-sized
+nebulae with varied arrangements; the first retains the original composition. Regions overlap
+with complementary horizontal masks to blend their clouds across boundaries without hard cuts. Depth carriers
+travel 35, 65, and 100vw per route for stars, and 50vw for clouds. Scroll parallax composes
+independently, with the foreground moving up to 560px over the page's scroll range.
+
+Voyage begins on `navigatesuccess`, after CSR prepares the content snapshots, rather than at
+link activation while the destination is still loading. `--nav-duration` is measured from
+the active content animations, including their delays (up to 1080ms), so scenery settles with
+the last incoming block. `--ease-voyage` combines the departure curve's initial
+control point with the arrival curve's final control point, accelerating into travel and
+slowing as the incoming content settles.
+
+The layout seeds `--voyage` during static generation so direct loads begin at their destination
+without an initial trip from home. The cosmos owns its theme. The page backdrop paints below the fixed cosmos,
+while its positioned content paints above it; keep the page wrapper free of a stacking context.
+
+Two things make that work, and both are easy to undo by accident:
+
+- **`x-cosmos` is rendered beside `t-view`, not inside it.** Only the view's children are
+  replaced during navigation, so the background survives. Were it rebuilt per page it would
+  have no previous position to transition from, and would snap instead of travel.
+- **Each depth has its own carrier element.** A star layer already spends both of its transform
+  channels — `transform` on ambient drift, `translate` on scroll parallax — so the voyage is
+  composed by nesting rather than by a third declaration on the same element.
 
 The custom properties are the important half: they inherit through shadow boundaries, so a component's
 internal stylesheet reacts to either concern without importing anything.
@@ -131,8 +172,8 @@ Two platform constraints shape the implementation:
 
 - **`view-transition-name` has no effect inside a shadow root.** The named elements are therefore the
   light-DOM content blocks (`x-page-heading`, `x-content`, `x-feature`), not `x-page`'s own layout elements.
-  This is also the better split — the nav, footer and starfield stay in the untouched root snapshot and hold
-  still, so the content appears to travel against a fixed frame.
+  The document root has `view-transition-name: none`, so the
+  nav, footer, and persistent starfield remain live while named content snapshots travel above them.
 - **A view transition captures the incoming element rather than showing it live**, and the element's own
   transform is baked into that capture. Both halves must therefore be driven from the
   `::view-transition-old()` and `::view-transition-new()` pseudo-elements; an animation declared on the real
@@ -148,8 +189,43 @@ Follow `.prettierrc.json`: tabs in code, single quotes, semicolons, trailing com
 TypeScript is strict, including unchecked indexed access and exact optional properties. ESLint rejects
 explicit `any`; use types that describe the data.
 
-For code changes, run `pnpm typecheck`, `pnpm lint`, `pnpm format`, and `pnpm build`. Report pre-existing
-failures separately from new ones. For UI or routing changes, also check the affected pages in a browser,
+`src/result.ts` provides `Ok<T>`, `Err<E>`, `Result<T, E>`, `AsyncResult<T, E>`, `safeTry`, and
+`asyncSafeTry`. Narrow the `ok` discriminant before reading a value or error.
+
+### Testing foundation
+
+Use the Node version declared in `package.json` (24.21 or newer). Node strips erasable TypeScript
+syntax natively; unit tests need neither a loader nor a type-stripping flag. Their relative imports
+include `.ts` extensions, enabled for typechecking by `allowImportingTsExtensions`. Keep `pnpm typecheck`
+as a separate check because stripping types does not validate them.
+
+After installing the locked dependencies, install the test browser once:
+
+```sh
+pnpm exec playwright install chromium
+```
+
+On Linux CI hosts without browser libraries, use `pnpm exec playwright install --with-deps chromium`.
+An existing compatible Chrome installation can be used with `PLAYWRIGHT_CHANNEL=chrome pnpm test`.
+
+- **Units:** `tests/unit/` uses native `node:test`. Coverage includes `src/result.ts` and `src/routes.ts`,
+  with 100% line, branch, and function thresholds. Add pure modules to the coverage scope as they gain tests;
+  this threshold describes the tested scope, not the whole application.
+- **Components:** `stories/` and `.storybook/` use the Web Components/Vite framework. Storybook's Vitest
+  addon runs stories and their `play` functions in real Chromium. The initial card stories check public
+  slots, focusable controls, and responsive layout without opening closed shadow roots.
+- **E2E:** `tests/e2e/` uses Playwright user stories, repeated on desktop and mobile viewports. The runner
+  builds and starts the static site itself; stop any other server on port 4173 before running it. Stories
+  cover direct destinations, persisted keyboard motion preferences, and breadcrumb/history navigation
+  that preserves the background. Browser controls exercise closed-root components through normal clicks
+  and keyboard input.
+
+Unit coverage and component/E2E results print to the CLI. Playwright also writes a JSON report and keeps
+traces only for failures in `.test-results/`. Generated coverage, reports, and `storybook-static/` are
+ignored by Git. Keep unit tests focused on pure contracts and browser tests on observable behavior.
+
+For code changes, run `pnpm test`, `pnpm typecheck`, `pnpm lint`, `pnpm format`, and `pnpm build`.
+For Storybook changes, also run `pnpm build:storybook`. Report pre-existing failures separately from new ones. For UI or routing changes, also check the affected pages in a browser,
 including a direct load and navigation from another page.
 For documentation-only changes, check the text, referenced paths, and formatting. Avoid repository-wide
 format fixes for a small edit. Do not commit `dist/`, `node_modules/`, or generated `*.tmp.*` files.

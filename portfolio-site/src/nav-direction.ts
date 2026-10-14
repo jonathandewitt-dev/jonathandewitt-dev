@@ -1,4 +1,5 @@
 import { routeIndex } from './routes';
+import { safeTry } from './result';
 
 /**
  * Which way a navigation travels through `routes`, published to the document for the page
@@ -17,6 +18,11 @@ export type NavDirectionEvent = CustomEvent<{ direction: NavDirection }>;
 
 type NavigateEventLike = Event & { destination?: { url?: string } };
 
+/** Publishes a route coordinate for persistent scenery to follow. */
+const publishVoyage = (index: number) => {
+	document.documentElement.style.setProperty('--voyage', String(Math.max(0, index)));
+};
+
 /**
  * Starts flagging navigation direction. Call once from the composition root.
  *
@@ -26,20 +32,20 @@ type NavigateEventLike = Event & { destination?: { url?: string } };
  * ```
  */
 export const startNavDirection = (): (() => void) => {
+	// Seed the starting coordinate so a direct load of any page begins in the right place.
+	publishVoyage(routeIndex(location.pathname));
+
 	const navigation = (window as unknown as { navigation?: EventTarget }).navigation;
 	// No Navigation API means no client-side routing either, so there is nothing to flag.
-	if (!navigation) return () => {};
+	if (navigation === undefined) return () => {};
 
 	const onNavigate = (event: Event) => {
-		const destination = (event as NavigateEventLike).destination;
+		const destinationUrl = (event as NavigateEventLike).destination?.url;
 		const from = routeIndex(location.pathname);
 		let to = -1;
-		if (destination?.url !== undefined) {
-			try {
-				to = routeIndex(new URL(destination.url).pathname);
-			} catch {
-				to = -1;
-			}
+		if (destinationUrl !== undefined) {
+			const pathname = safeTry(() => new URL(destinationUrl, location.href).pathname);
+			if (pathname.ok === true) to = routeIndex(pathname.value);
 		}
 		// Anything off the main nav keeps the default forward sweep rather than guessing.
 		const direction: NavDirection = from !== -1 && to !== -1 && to < from ? 'back' : 'forward';
@@ -47,6 +53,26 @@ export const startNavDirection = (): (() => void) => {
 		document.dispatchEvent(new CustomEvent(NAV_DIRECTION, { detail: { direction } }));
 	};
 
+	// CSR completes navigation after the content swap's snapshots are ready to animate.
+	const onArrival = () => {
+		const endTimes = document
+			.getAnimations()
+			.filter(
+				(animation) =>
+					animation instanceof CSSAnimation &&
+					(animation.animationName === 'orbit-in' || animation.animationName === 'orbit-out'),
+			)
+			.map((animation) => animation.effect?.getComputedTiming().endTime ?? 0)
+			.filter((endTime): endTime is number => typeof endTime === 'number' && Number.isFinite(endTime));
+		if (endTimes.length > 0) {
+			document.documentElement.style.setProperty('--nav-duration', String(Math.max(...endTimes)));
+		}
+		publishVoyage(routeIndex(location.pathname));
+	};
 	navigation.addEventListener('navigate', onNavigate);
-	return () => navigation.removeEventListener('navigate', onNavigate);
+	navigation.addEventListener('navigatesuccess', onArrival);
+	return () => {
+		navigation.removeEventListener('navigate', onNavigate);
+		navigation.removeEventListener('navigatesuccess', onArrival);
+	};
 };

@@ -20,6 +20,7 @@
 		// Other Outputs
 		"sourceMap": true,
 		"noEmit": true,
+		"allowImportingTsExtensions": true,
 		"declaration": false,
 		"declarationMap": false,
 

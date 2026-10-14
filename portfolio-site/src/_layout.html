@@ -1,6 +1,6 @@
 <!-- Since this file begins with an underscore, it will be excluded from the output. -->
 <!-- This markup will only be rendered if a page includes it with <?layout href="_layout.html"> -->
-<html lang="en">
+<html lang="en" expr:style="`--voyage: ${Math.max(0, routeIndex(pathname))}`">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -30,6 +30,10 @@
 		</script>
 	</head>
 	<body>
+		<!-- Outside the view on purpose: the background persists across navigations so it can
+		     carry the viewer between pages. -->
+		<x-cosmos aria-hidden="true"></x-cosmos>
+
 		<!-- This view element is used for CSR navigation, only this element will be replaced when navigating -->
 		<t-view id="main-content">
 			<x-page expr:prominent="pathname === '/'">
@@ -58,7 +62,6 @@
 					</script>
 				</x-page-heading>
 
-				<!-- This is where page content is inserted when this layout is used -->
 				<slot></slot>
 			</x-page>
 		</t-view>
@@ -67,6 +70,7 @@
 
 		<script server>
 			import { getMeta } from 'thunderous-server';
+			import { routeIndex } from './routes';
 
 			// This makes some handy data available to the template, like breadcrumbs
 			const meta = getMeta();
@@ -79,6 +83,7 @@
 			const heading = headings[meta.pathname] ?? meta.title;
 			export default {
 				...meta,
+				routeIndex,
 				title: meta.pathname === '/' ? '' : heading,
 				heading,
 				breadcrumbItems: meta.breadcrumbs.map((crumb, index) => ({

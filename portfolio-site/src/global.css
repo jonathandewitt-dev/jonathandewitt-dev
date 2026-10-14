@@ -9,9 +9,16 @@
 
 	--ease-orbit: cubic-bezier(0.18, 1.03, 0.32, 1);
 	--ease-orbit-out: cubic-bezier(0.55, 0.06, 0.86, 0.3);
+	--ease-voyage: cubic-bezier(0.55, 0.06, 0.32, 1);
 
 	/* 1 travels toward the end of the nav, -1 back toward its start. See nav-direction.ts. */
 	--nav-dir: 1;
+
+	/* How long a navigation lasts, in milliseconds, shared by everything that moves with one. */
+	--nav-duration: 1080;
+
+	/* The viewer's position in space, published per route by nav-direction.ts. */
+	--voyage: 0;
 }
 
 :root[data-nav-direction='back'] {
@@ -37,6 +44,8 @@
 }
 
 html {
+	/* Keep the persistent scenery live while named content snapshots travel over it. */
+	view-transition-name: none;
 	font-size: 16px;
 	-webkit-text-size-adjust: 100%;
 	/* Contains content parked off-screen mid-transition. clip, not hidden, to avoid making
@@ -109,17 +118,6 @@ t-view.pending {
 }
 ::view-transition-new(page-feature) {
 	animation-delay: calc(var(--motion) * 600ms);
-}
-
-/* Everything unnamed — nav, footer, starfield — is identical either side of a navigation, so
-   cross-fading it only flickers. Holding it still is what the travelling content reads against. */
-::view-transition-old(root),
-::view-transition-new(root) {
-	animation: none;
-	mix-blend-mode: normal;
-}
-::view-transition-old(root) {
-	display: none;
 }
 
 /*
