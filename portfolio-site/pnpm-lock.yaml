@@ -175,7 +175,7 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  thunderous-csr@0.0.8: a7d170a0a02936ddf939d8bcf93ad3008420499f7e1d7f98e74eb961e1d21d35
+  thunderous-csr@0.0.8: dac58c71f6cc9e190c025febff483c246ae040eb35df840256dc0275ab0b8f16
 
 importers:
   .:
@@ -185,7 +185,7 @@ importers:
         version: 2.4.6
       thunderous-csr:
         specifier: ^0.0.8
-        version: 0.0.8(patch_hash=a7d170a0a02936ddf939d8bcf93ad3008420499f7e1d7f98e74eb961e1d21d35)(thunderous@2.4.6)
+        version: 0.0.8(patch_hash=dac58c71f6cc9e190c025febff483c246ae040eb35df840256dc0275ab0b8f16)(thunderous@2.4.6)
     devDependencies:
       '@eslint/css':
         specifier: ^0.13.0
@@ -5191,7 +5191,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  thunderous-csr@0.0.8(patch_hash=a7d170a0a02936ddf939d8bcf93ad3008420499f7e1d7f98e74eb961e1d21d35)(thunderous@2.4.6):
+  thunderous-csr@0.0.8(patch_hash=dac58c71f6cc9e190c025febff483c246ae040eb35df840256dc0275ab0b8f16)(thunderous@2.4.6):
     dependencies:
       thunderous: 2.4.6
 

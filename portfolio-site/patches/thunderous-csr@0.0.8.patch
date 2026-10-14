@@ -1,7 +1,16 @@
 diff --git a/dist/index.cjs b/dist/index.cjs
-index 1247d78f65353a19205494c871ecba76ada32b9d..403424dd9d1f82c3a9779bb40c46f7bc20254b7c 100644
+index 1247d78f65353a19205494c871ecba76ada32b9d..fc150deaf74c50505a15731e8a163f1b83df7a84 100644
 --- a/dist/index.cjs
 +++ b/dist/index.cjs
+@@ -128,7 +128,7 @@ var View = (0, import_thunderous.customElement)(
+         logger.debug(`THUNDEROUS-CSR: View status updated to "${status}" for "${elementRef.id}"`);
+       });
+       const handleNavigate = (event) => {
+-        if (!event.canIntercept || getStatus() === "pending" || event.navigationType === "reload") {
++        if (!event.canIntercept || typeof event.downloadRequest === "string" || new URL(event.destination.url).pathname.startsWith("/assets/") || getStatus() === "pending" || event.navigationType === "reload") {
+           return;
+         }
+         setStatus("pending");
 @@ -144,11 +144,16 @@ var View = (0, import_thunderous.customElement)(
                );
                elementRef.remove();
@@ -21,6 +30,15 @@ index 1247d78f65353a19205494c871ecba76ada32b9d..403424dd9d1f82c3a9779bb40c46f7bc
              }
              setStatus("ready");
            }
+@@ -278,7 +283,7 @@ if (!globalThis.__GLOBAL_THUNDEROUS_VIEW_REGISTERED || parent.__GLOBAL_THUNDEROU
+   globalThis.__GLOBAL_THUNDEROUS_VIEW_REGISTERED = true;
+   (0, import_thunderous2.clientOnlyCallback)(() => {
+     navigation.addEventListener("navigate", (event) => {
+-      if (!event.canIntercept || event.navigationType === "reload") return;
++      if (!event.canIntercept || typeof event.downloadRequest === "string" || new URL(event.destination.url).pathname.startsWith("/assets/") || event.navigationType === "reload") return;
+       event.intercept({
+         async handler() {
+           state.navigateAbort.abort();
 @@ -294,41 +299,45 @@ if (!globalThis.__GLOBAL_THUNDEROUS_VIEW_REGISTERED || parent.__GLOBAL_THUNDEROU
            }).catch(state.destResolvers.reject);
            const destinationDocument = await state.destResolvers.promise;
@@ -124,9 +142,18 @@ index 1247d78f65353a19205494c871ecba76ada32b9d..403424dd9d1f82c3a9779bb40c46f7bc
        });
      });
 diff --git a/dist/index.js b/dist/index.js
-index e94b7edf30a10ca7879f7a88b47f64964b6400c7..86f60c5d078e946ca697df8f01b96f6219f9f7a9 100644
+index e94b7edf30a10ca7879f7a88b47f64964b6400c7..b839f7a223c7b81c87653681c659f0c947375922 100644
 --- a/dist/index.js
 +++ b/dist/index.js
+@@ -101,7 +101,7 @@ var View = customElement(
+         logger.debug(`THUNDEROUS-CSR: View status updated to "${status}" for "${elementRef.id}"`);
+       });
+       const handleNavigate = (event) => {
+-        if (!event.canIntercept || getStatus() === "pending" || event.navigationType === "reload") {
++        if (!event.canIntercept || typeof event.downloadRequest === "string" || new URL(event.destination.url).pathname.startsWith("/assets/") || getStatus() === "pending" || event.navigationType === "reload") {
+           return;
+         }
+         setStatus("pending");
 @@ -117,11 +117,16 @@ var View = customElement(
                );
                elementRef.remove();
@@ -146,6 +173,15 @@ index e94b7edf30a10ca7879f7a88b47f64964b6400c7..86f60c5d078e946ca697df8f01b96f62
              }
              setStatus("ready");
            }
+@@ -251,7 +256,7 @@ if (!globalThis.__GLOBAL_THUNDEROUS_VIEW_REGISTERED || parent.__GLOBAL_THUNDEROU
+   globalThis.__GLOBAL_THUNDEROUS_VIEW_REGISTERED = true;
+   clientOnlyCallback(() => {
+     navigation.addEventListener("navigate", (event) => {
+-      if (!event.canIntercept || event.navigationType === "reload") return;
++      if (!event.canIntercept || typeof event.downloadRequest === "string" || new URL(event.destination.url).pathname.startsWith("/assets/") || event.navigationType === "reload") return;
+       event.intercept({
+         async handler() {
+           state.navigateAbort.abort();
 @@ -267,41 +272,45 @@ if (!globalThis.__GLOBAL_THUNDEROUS_VIEW_REGISTERED || parent.__GLOBAL_THUNDEROU
            }).catch(state.destResolvers.reject);
            const destinationDocument = await state.destResolvers.promise;

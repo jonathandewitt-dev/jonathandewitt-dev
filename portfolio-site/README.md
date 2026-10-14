@@ -162,6 +162,10 @@ API's completion promise. This avoids Thunderous CSR's pending-view guard discar
 upstream detached callback could otherwise replace a newer page with stale content. The patch also emits
 `view:transition-ready` from the native snapshot-ready promise, keeping visual motion independent of that
 validation delay. Retain the patch until the dependency supplies equivalent lifecycle behavior.
+Both CSR navigation handlers also leave `/assets/` destinations and links marked `download` to the
+browser. These responses are files, so parsing them as page HTML would replace the site with raw
+PDF or other binary content. The résumé link retains native same-tab behavior and the browser's PDF
+viewer (or its configured download preference).
 A normal anchor activation is the fallback when the request service is unavailable. The layout supplies
 an empty `loading-overlay` slot to `t-view` so its default blocking overlay cannot swallow further nav
 presses while a destination loads. The native `::view-transition` overlay also passes pointer events through

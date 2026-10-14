@@ -107,4 +107,14 @@ test('as a hiring reviewer, I can access the public résumé PDF', async ({ page
 	expect(response.ok()).toBe(true);
 	expect(response.headers()['content-type']).toContain('application/pdf');
 	expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
+	for (let index = 0; index < 16; index++) {
+		await page.keyboard.press('Tab');
+		if (await page.evaluate(() => document.activeElement === document.querySelector('x-feature'))) break;
+	}
+	expect(await page.evaluate(() => document.activeElement === document.querySelector('x-feature'))).toBe(true);
+	const nativeRequest = page.waitForRequest(
+		(request) => new URL(request.url()).pathname === pdfPath && request.resourceType() === 'document',
+	);
+	await page.keyboard.press('Enter');
+	await nativeRequest;
 });
