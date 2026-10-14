@@ -18,9 +18,11 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		cleanup();
 		if (!(root instanceof ShadowRoot)) return;
 		const nav = root.querySelector<HTMLElement>('nav');
+		const menu = root.querySelector<HTMLDetailsElement>('details');
+		const menuToggle = root.querySelector<HTMLElement>('summary');
 		const stage = root.querySelector<HTMLElement>('.stage');
 		const links = Array.from(root.querySelectorAll<HTMLAnchorElement>('.nav-link'));
-		if (nav === null || stage === null) return;
+		if (nav === null || menu === null || menuToggle === null || stage === null) return;
 		const initial = Math.max(0, routeIndex(location.pathname));
 		let rotation = readOrbitRotation(-angleFor(initial));
 		let press: { kind: 'mouse' | 'touch'; identifier: number; gesture: OrbitGesture } | null = null;
@@ -30,6 +32,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		let hoverFrame = 0;
 		let hoverTarget = rotation;
 		let hoverTime = 0;
+		const desktop = window.matchMedia('(min-width: 48rem)');
 
 		const paint = (next: number, publish = true) => {
 			rotation = next;
@@ -83,9 +86,27 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		};
 		const updateMode = () => {
 			cancel();
-			nav.toggleAttribute('data-enhanced', resolveMotion() === 'full');
+			const enhanced = resolveMotion() === 'full';
+			const persistentMenu = enhanced || desktop.matches;
+			const focused = root.activeElement;
+			nav.toggleAttribute('data-enhanced', enhanced);
+			nav.toggleAttribute('data-persistent-menu', persistentMenu);
+			menu.open = persistentMenu;
+			if (persistentMenu && focused === menuToggle) links[initial]?.focus({ preventScroll: true });
+			else if (!persistentMenu && focused !== null && stage.contains(focused))
+				menuToggle.focus({ preventScroll: true });
 			paint(rotation, false);
 		};
+		const closeMenuOnEscape = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape' || !menu.open || nav.hasAttribute('data-persistent-menu')) return;
+			event.preventDefault();
+			menu.open = false;
+			menuToggle.focus({ preventScroll: true });
+		};
+		const closeMenuOnNavigation = () => {
+			if (!nav.hasAttribute('data-persistent-menu')) menu.open = false;
+		};
+		const navigation = (window as unknown as { navigation?: EventTarget }).navigation;
 		const onRotation = (event: Event) => {
 			const detail = (event as OrbitRotationEvent).detail;
 			if (detail.source !== 'navigation') return;
@@ -229,6 +250,8 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 			link.addEventListener('mouseleave', leaveItem);
 		});
 		updateMode();
+		menu.addEventListener('keydown', closeMenuOnEscape);
+		navigation?.addEventListener('navigate', closeMenuOnNavigation);
 		stage.addEventListener('mousedown', mouseDown);
 		stage.addEventListener('mousemove', hoverMove);
 		stage.addEventListener('mouseleave', stopHover);
@@ -245,9 +268,12 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		stage.addEventListener('keydown', keys);
 		window.addEventListener('blur', cancel);
 		document.addEventListener(MOTION_CHANGE, updateMode);
+		desktop.addEventListener('change', updateMode);
 		document.addEventListener(ORBIT_ROTATION, onRotation);
 		cleanup = () => {
 			cancel();
+			menu.removeEventListener('keydown', closeMenuOnEscape);
+			navigation?.removeEventListener('navigate', closeMenuOnNavigation);
 			links.forEach((link) => {
 				link.removeEventListener('mouseout', leaveItem);
 				link.removeEventListener('mouseleave', leaveItem);
@@ -268,6 +294,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 			stage.removeEventListener('keydown', keys);
 			window.removeEventListener('blur', cancel);
 			document.removeEventListener(MOTION_CHANGE, updateMode);
+			desktop.removeEventListener('change', updateMode);
 			document.removeEventListener(ORBIT_ROTATION, onRotation);
 		};
 	});
@@ -275,28 +302,31 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 
 	return html`
 		<nav aria-label="Main navigation">
-			<p class="hint">
-				<span>Hover or drag to explore</span>
-				<span>Click or tap to visit</span>
-			</p>
-			<div class="stage">
-				<div class="shadow" aria-hidden="true"></div>
-				<div class="tilt">
-					<div class="ring">
-						<div class="ribbon" aria-hidden="true">
-							${Array.from({ length: 64 }, (_, index) => html`<i style="--angle: ${index * 5.625}deg"></i>`)}
+			<details class="menu">
+				<summary><span aria-hidden="true">☰</span> Menu</summary>
+				<p class="hint">
+					<span>Hover or drag to explore</span>
+					<span>Click or tap to visit</span>
+				</p>
+				<div class="stage">
+					<div class="shadow" aria-hidden="true"></div>
+					<div class="tilt">
+						<div class="ring">
+							<div class="ribbon" aria-hidden="true">
+								${Array.from({ length: 64 }, (_, index) => html`<i style="--angle: ${index * 5.625}deg"></i>`)}
+							</div>
+							${destinations.map(
+								(item, index) => html`
+									<a class="nav-link" href="${item.href}" style="--angle: ${angleFor(index)}deg">
+										<span class="number" aria-hidden="true">0${index + 1}</span>
+										${item.label}<span class="arrow" aria-hidden="true">↗</span>
+									</a>
+								`,
+							)}
 						</div>
-						${destinations.map(
-							(item, index) => html`
-								<a class="nav-link" href="${item.href}" style="--angle: ${angleFor(index)}deg">
-									<span class="number" aria-hidden="true">0${index + 1}</span>
-									${item.label}<span class="arrow" aria-hidden="true">↗</span>
-								</a>
-							`,
-						)}
 					</div>
 				</div>
-			</div>
+			</details>
 		</nav>
 	`;
 });
@@ -327,6 +357,7 @@ const stylesheet = css`
 	}
 	.ring {
 		display: flex;
+		flex-direction: column;
 		flex-wrap: wrap;
 		justify-content: center;
 		gap: 0.75rem;
@@ -334,6 +365,26 @@ const stylesheet = css`
 		border: 1px solid var(--color-surface-1-2);
 		border-radius: 0.75rem;
 		background: var(--color-surface-1);
+		margin-top: 0.5rem;
+	}
+	.menu summary {
+		list-style: none;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-height: 44px;
+		box-sizing: border-box;
+		padding: 0.75rem 1rem;
+		border: 1px solid var(--color-surface-1-2);
+		border-radius: 0.75rem;
+		background: var(--color-surface-1);
+		color: var(--color-neutral-1);
+		font-family: var(--font-display);
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.menu summary::-webkit-details-marker {
+		display: none;
 	}
 	.nav-link {
 		display: inline-flex;
@@ -364,6 +415,17 @@ const stylesheet = css`
 		display: none;
 	}
 
+	nav[data-persistent-menu] {
+		.menu summary {
+			display: none;
+		}
+	}
+	@media (min-width: 48rem) {
+		nav:not([data-enhanced]) .ring {
+			flex-direction: row;
+			margin-top: 0;
+		}
+	}
 	nav[data-enhanced] {
 		position: relative;
 		text-align: center;
@@ -446,6 +508,7 @@ const stylesheet = css`
 		}
 		.ring {
 			display: block;
+			margin: 0;
 			width: 0;
 			height: 0;
 			padding: 0;

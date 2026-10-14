@@ -131,7 +131,12 @@ The supplemental block shares the primary text's animation timing.
 ### Orbit navigation
 
 `x-orbit-nav` is supplied to the page's `navigation` slot from the layout. It uses the same controls on
-mouse and touch devices. Full motion enables the 3D ring; reduced motion retains ordinary flat links.
+mouse and touch devices. Full motion enables the 3D ring; reduced motion collapses the same links into
+a native hamburger disclosure below 48rem (768px at the default font size). At that breakpoint the
+reduced-motion links expand into a persistent desktop row. Enter or Space opens the hamburger; Escape
+closes it and returns focus to the toggle. Navigation closes the hamburger, and resizing or changing the
+motion preference switches modes without leaving keyboard focus on a hidden control. The disclosure
+remains usable without JavaScript.
 Mouse movement over the stage smoothly rotates the ring from its current position. Leaving the stage
 preserves the visible angle. Hover uses a constant rotation per pixel: forty percent of the frame's width
 covers the entire route range, regardless of the starting angle or direction. At either end, reversing

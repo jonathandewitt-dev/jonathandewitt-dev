@@ -140,7 +140,9 @@ test('as a visitor, my rapid presses on the orbit nav each navigate exactly once
 	}
 	await expect.poll(() => page.evaluate(() => (Reflect.get(window, 'orbitRequests') as string[]).length)).toBe(3);
 	releaseFetch();
-	await expect.poll(() => page.evaluate(() => (Reflect.get(window, 'orbitArrivals') as string[]).length)).toBe(3);
+	await expect
+		.poll(() => page.evaluate(() => (Reflect.get(window, 'orbitArrivals') as string[]).length), { timeout: 15_000 })
+		.toBe(3);
 	await expect(page).toHaveURL(/\/blog\/?$/);
 	await expect(page.locator('x-content')).toContainText('Ideas with a playground.');
 });

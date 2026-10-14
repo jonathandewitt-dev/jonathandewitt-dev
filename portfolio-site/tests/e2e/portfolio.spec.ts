@@ -1,5 +1,13 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { routeIndex } from '../../src/routes.ts';
+
+const focusMainNavigation = async (page: Page) => {
+	for (let index = 0; index < 16; index++) {
+		await page.keyboard.press('Tab');
+		if (await page.evaluate(() => document.activeElement === document.querySelector('x-orbit-nav'))) return;
+	}
+	throw new Error('Main navigation is not keyboard reachable');
+};
 
 test('as a visitor, I can open every main destination directly and read its content', async ({ page }) => {
 	for (const [path, text] of [
@@ -50,6 +58,82 @@ test('as a visitor, I can follow a breadcrumb home and go back while keeping my 
 	expect(await page.evaluate(() => document.querySelector('x-cosmos') === Reflect.get(window, 'originalCosmos'))).toBe(
 		true,
 	);
+});
+
+test('as a motion-sensitive visitor, I can open the hamburger, dismiss it, and navigate with the keyboard', async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 375, height: 812 });
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
+	await page.goto('/about');
+	await page.keyboard.press('Tab');
+	await page.keyboard.press('Space');
+	const nav = page.locator('x-orbit-nav');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
+	await focusMainNavigation(page);
+	await page.keyboard.press('Enter');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(300);
+	await page.keyboard.press('Tab');
+	await page.keyboard.press('Escape');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
+	await page.keyboard.press('Space');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(300);
+	for (let index = 0; index <= routeIndex('/blog'); index++) await page.keyboard.press('Tab');
+	await page.keyboard.press('Enter');
+	await expect(page).toHaveURL(/\/blog\/?$/);
+	await expect(page.locator('x-content')).toContainText('Ideas with a playground.');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
+});
+
+test('as a visitor, changing my system motion preference restores the orbit without losing keyboard access', async ({
+	page,
+}) => {
+	await page.setViewportSize({ width: 375, height: 812 });
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.goto('/work');
+	const nav = page.locator('x-orbit-nav');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
+	await page.keyboard.press('Tab');
+	await focusMainNavigation(page);
+	await page.keyboard.press('Enter');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(300);
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(150);
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(300);
+	await page.keyboard.press('ArrowRight');
+	await page.keyboard.press('Enter');
+	await expect(page).toHaveURL(/\/resume\/?$/);
+});
+
+test('as a motion-sensitive visitor, resizing expands the desktop nav and preserves usable keyboard focus', async ({
+	page,
+}) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.setViewportSize({ width: 767, height: 812 });
+	await page.goto('/work');
+	const nav = page.locator('x-orbit-nav');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
+	await focusMainNavigation(page);
+	await page.keyboard.press('Enter');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(300);
+	await page.keyboard.press('Tab');
+	await page.setViewportSize({ width: 768, height: 812 });
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(60);
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
+	await page.setViewportSize({ width: 767, height: 812 });
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
+	await page.keyboard.press('Space');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(300);
+	await page.setViewportSize({ width: 768, height: 812 });
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(60);
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
+	await page.keyboard.press('Escape');
+	await page.keyboard.press('ArrowRight');
+	await page.keyboard.press('Enter');
+	await expect(page).toHaveURL(/\/resume\/?$/);
+	await expect(page.locator('x-content[view-transition-name="content"]')).toContainText('The short version');
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? 0).toBeGreaterThan(60);
+	await expect.poll(async () => (await nav.boundingBox())?.height ?? Infinity).toBeLessThan(80);
 });
 
 test('as a hiring reviewer, I can find the portfolio from the résumé page', async ({ page }) => {
