@@ -53,13 +53,38 @@ test('as a visitor, I can follow a breadcrumb home and go back while keeping my 
 });
 
 test('as a hiring reviewer, I can find the portfolio from the résumé page', async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
 	await page.goto('/resume');
+	await page.evaluate(() => {
+		const navigation = (window as unknown as { navigation: EventTarget }).navigation;
+		navigation.addEventListener('navigatesuccess', () => {
+			const deadline = performance.now() + 1500;
+			const recordAnimations = () => {
+				const names = document
+					.getAnimations()
+					.filter((animation): animation is CSSAnimation => animation instanceof CSSAnimation)
+					.map((animation) => animation.animationName);
+				Reflect.set(window, 'resumeTransitionAnimations', names);
+				if (names.includes('orbit-out') || names.includes('orbit-in')) return;
+				// Snapshot effects may be registered a frame after Navigation API success.
+				if (performance.now() < deadline) requestAnimationFrame(recordAnimations);
+			};
+			recordAnimations();
+		});
+	});
 	await expect(page.locator('x-blockquote')).toContainText('home address and phone number');
 	await expect(page.locator('x-blockquote x-link[href="mailto:jon@jonathandewitt.dev"]')).toContainText('emailing me');
 	await page.locator('x-link[href="/work"]').click();
 	await expect(page).toHaveURL(/\/work\/?$/);
 	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/work')));
 	await expect(page.locator('x-project-list')).toBeVisible();
+	await expect
+		.poll(() => page.evaluate(() => Reflect.get(window, 'resumeTransitionAnimations')))
+		.toContain('orbit-out');
+	await page.evaluate(() => Reflect.deleteProperty(window, 'resumeTransitionAnimations'));
+	await page.goBack();
+	await expect(page).toHaveURL(/\/resume\/?$/);
+	await expect.poll(() => page.evaluate(() => Reflect.get(window, 'resumeTransitionAnimations'))).toContain('orbit-in');
 });
 
 test('as a reader, I can reach the blog from the main navigation using the keyboard', async ({ page }, testInfo) => {
@@ -75,4 +100,15 @@ test('as a reader, I can reach the blog from the main navigation using the keybo
 	await expect(page).toHaveURL(/\/blog\/?$/);
 	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/blog')));
 	await expect(page.locator('x-content')).toContainText('Ideas with a playground.');
+});
+
+test('as a hiring reviewer, I can access the public résumé PDF', async ({ page, request }) => {
+	await page.goto('/resume');
+	const pdfPath = '/assets/Jonathan_Dewitt_Resume_Public.pdf';
+	await expect(page.locator('x-feature')).toHaveAttribute('href', pdfPath);
+	await expect(page.locator('x-feature')).not.toHaveAttribute('pending');
+	const response = await request.get(pdfPath);
+	expect(response.ok()).toBe(true);
+	expect(response.headers()['content-type']).toContain('application/pdf');
+	expect((await response.body()).subarray(0, 5).toString()).toBe('%PDF-');
 });

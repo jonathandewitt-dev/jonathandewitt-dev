@@ -115,9 +115,12 @@ guard because that module is isomorphic. Each publishes two ways:
 
 The primary navigation order is: Home → Blog → About Me → My Work → Resume → Contact Me.
 `/blog` introduces the future standalone post experiences. `/resume` links readers to the portfolio and explains
-how to request private contact details by email. Both use `x-feature[pending]` for a disabled, clearly labelled
-placeholder action. When the redacted PDF is available, replace the résumé feature's `pending` attribute with
-an `href` to the public file and set its `buttontext` to a download label.
+how to request private contact details by email. The Blog page uses `x-feature[pending]` for a disabled, clearly labelled placeholder action.
+The résumé feature links to the public PDF at `src/assets/Jonathan_Dewitt_Resume_Public.pdf`.
+
+A page may have one primary `x-content` and one `x-content[intent="supplement"]`. The supplemental
+block has its own transition name, `page-supplement`, and shares the primary text's animation timing.
+This keeps both sections independently animated without rearranging them or duplicating a snapshot name.
 
 ### Travelling between pages
 
