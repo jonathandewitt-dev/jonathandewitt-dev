@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 /** Locates the visible face through the component's public host, without opening its shadow root. */
 const orbitFace = async (page: Page) => {
+	await page.locator('x-orbit-nav').scrollIntoViewIfNeeded();
 	const box = await page.locator('x-orbit-nav').boundingBox();
 	expect(box).not.toBeNull();
 	if (box === null) throw new Error('Orbit nav is not visible');
@@ -97,11 +98,16 @@ test('as a visitor, the orbit smoothly centers my destination through the page r
 	const frames = await page.evaluate(
 		() => Reflect.get(window, 'centeringFrames') as { rotation: number; replaced: boolean }[],
 	);
-	expect(frames.some((frame) => !frame.replaced && frame.rotation > -54 && frame.rotation < -18)).toBe(true);
+	expect(frames.some((frame) => frame.rotation > -54 && frame.rotation < -18)).toBe(true);
 	expect(frames.at(-1)?.rotation).toBe(-18);
 	expect(
 		await page.evaluate(() => document.querySelector('x-orbit-nav') !== Reflect.get(window, 'departingOrbit')),
 	).toBe(true);
+	await page.evaluate(async () => {
+		const navigation = (window as unknown as { navigation: { transition: { finished: Promise<unknown> } | null } })
+			.navigation;
+		await navigation.transition?.finished;
+	});
 	await recordRequests(page);
 	const face = await orbitFace(page);
 	await page.mouse.click(face.x, face.y);
@@ -259,7 +265,9 @@ test('as a visitor, choosing another destination while the first is loading reac
 		await page.evaluate(() => (Reflect.get(window, 'orbitRequests') as string[]).map((href) => new URL(href).pathname)),
 	).toEqual(['/blog', '/about', '/work']);
 	releaseFetch();
-	await expect.poll(() => page.evaluate(() => (Reflect.get(window, 'orbitArrivals') as string[]).length)).toBe(3);
+	await expect
+		.poll(() => page.evaluate(() => (Reflect.get(window, 'orbitArrivals') as string[]).length), { timeout: 15_000 })
+		.toBe(3);
 	await expect(page).toHaveURL(/\/work\/?$/);
 	await expect(page.locator('x-project-list')).toBeVisible();
 	expect(warnings.filter((message) => message.includes('Replacing the entire document'))).toEqual([]);

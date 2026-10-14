@@ -4,7 +4,10 @@ This application uses Thunderous web components, static HTML generation, and cli
 
 ## Stack and commands
 
-Run application commands from `portfolio-site/`. Use pnpm and preserve `pnpm-lock.yaml`.
+Run application commands from `portfolio-site/`. Use pnpm 12.11.2, pinned by `packageManager`,
+and preserve `pnpm-lock.yaml`. `vercel.json` explicitly installs with this version: the patched-dependency
+lockfile format is incompatible with Vercel's automatic pnpm 9/10 selection. Use `portfolio-site/`
+as the Vercel project root so its install override and patch files are included.
 
 | Command                          | Purpose                                                   |
 | -------------------------------- | --------------------------------------------------------- |
@@ -181,6 +184,12 @@ nebulae with varied arrangements; the first retains the original composition. Re
 with complementary horizontal masks to blend their clouds across boundaries without hard cuts. Depth carriers
 travel 35, 65, and 100vw per route for stars, and 50vw for clouds. Scroll parallax composes
 independently, with the foreground moving up to 560px over the page's scroll range.
+
+The deepest layer is `src/assets/orion-nebula.jpg` at 20% opacity, beneath the gradient nebulae
+and stars. One photo covers a 140vw by 130vh surface, panning a total of 40vw horizontally and
+15vh vertically across the route list. It uses the same voyage timing as the other layers and
+stays fixed during scrolling. The oversized surface covers every route without repeating the
+photo, so it needs no tiled edges or feathered overlaps.
 
 Voyage begins on `view:transition-ready`, when CSR's content snapshots are ready to animate, rather than at
 link activation while the destination is still loading. `navigatesuccess` is also observed for fallback cases. `--nav-duration` is measured from

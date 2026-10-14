@@ -7,6 +7,7 @@ export const Cosmos = customElement(({ adoptStyleSheet }) => {
 	adoptStyleSheet(theme);
 	adoptStyleSheet(stylesheet);
 	return html`
+		<div class="orion" style="--voyage-stops: ${Math.max(1, routes.length - 1)}"></div>
 		<div class="voyage clouds">
 			${routes.map(
 				(_, index) => html`
@@ -35,14 +36,31 @@ const stylesheet = css`
 		z-index: 0;
 		overflow: hidden;
 		pointer-events: none;
+		opacity: 0.5;
 	}
 
 	/* Voyage needs a carrier because drift and scroll parallax already own transform and translate. */
-	.voyage {
+	.voyage,
+	.orion {
 		position: absolute;
+		transition: transform calc(var(--motion) * var(--nav-duration) * 1ms) var(--ease-voyage);
+	}
+	.voyage {
 		inset: 0;
 		transform: translate3d(calc(var(--voyage, 0) * var(--voyage-step)), 0, 0);
-		transition: transform calc(var(--motion) * var(--nav-duration) * 1ms) var(--ease-voyage);
+	}
+	.orion {
+		/* Overscan reserves the entire route journey inside one photo, avoiding tiled seams. */
+		inset: -7.5vh auto auto 0;
+		width: 140vw;
+		height: 130vh;
+		background: url('/assets/orion-nebula.jpg') center / cover no-repeat;
+		opacity: 0.3;
+		transform: translate3d(
+			calc(-40vw * var(--voyage, 0) / var(--voyage-stops)),
+			calc(-15vh * var(--voyage, 0) / var(--voyage-stops)),
+			0
+		);
 	}
 	.clouds {
 		--voyage-step: -50vw;
@@ -169,14 +187,14 @@ const stylesheet = css`
 	.s1 {
 		--parallax-distance: -35px;
 		background-image:
-			radial-gradient(circle 0.5px at 12% 18%, rgba(255, 255, 255, 0.9), transparent),
-			radial-gradient(circle 0.5px at 37% 64%, rgba(255, 255, 255, 0.75), transparent),
-			radial-gradient(circle 0.5px at 68% 28%, rgba(255, 255, 255, 0.85), transparent),
-			radial-gradient(circle 0.5px at 84% 76%, rgba(255, 255, 255, 0.7), transparent),
-			radial-gradient(circle 0.5px at 52% 88%, rgba(255, 255, 255, 0.8), transparent),
-			radial-gradient(circle 0.5px at 24% 44%, rgba(255, 255, 255, 0.65), transparent),
-			radial-gradient(circle 0.5px at 92% 12%, rgba(255, 255, 255, 0.75), transparent),
-			radial-gradient(circle 0.5px at 6% 82%, rgba(255, 255, 255, 0.7), transparent);
+			radial-gradient(circle 1.5px at 12% 18%, rgba(255, 255, 255, 0.9), transparent),
+			radial-gradient(circle 1.5px at 37% 64%, rgba(255, 255, 255, 0.75), transparent),
+			radial-gradient(circle 1.5px at 68% 28%, rgba(255, 255, 255, 0.85), transparent),
+			radial-gradient(circle 1.5px at 84% 76%, rgba(255, 255, 255, 0.7), transparent),
+			radial-gradient(circle 1.5px at 52% 88%, rgba(255, 255, 255, 0.8), transparent),
+			radial-gradient(circle 1.5px at 24% 44%, rgba(255, 255, 255, 0.65), transparent),
+			radial-gradient(circle 1.5px at 92% 12%, rgba(255, 255, 255, 0.75), transparent),
+			radial-gradient(circle 1.5px at 6% 82%, rgba(255, 255, 255, 0.7), transparent);
 		background-size: 280px 280px;
 		opacity: 0.5;
 		animation: drift-stars-slow 150s linear infinite;
@@ -189,12 +207,12 @@ const stylesheet = css`
 		background-position: 440px 0;
 		--parallax-distance: -180px;
 		background-image:
-			radial-gradient(circle 0.9px at 22% 34%, rgba(255, 255, 255, 0.95), transparent),
-			radial-gradient(circle 0.9px at 74% 14%, rgba(199, 220, 255, 0.9), transparent),
-			radial-gradient(circle 0.9px at 46% 72%, rgba(255, 255, 255, 0.85), transparent),
-			radial-gradient(circle 0.9px at 88% 58%, rgba(255, 236, 214, 0.85), transparent),
-			radial-gradient(circle 0.9px at 14% 90%, rgba(255, 255, 255, 0.8), transparent),
-			radial-gradient(circle 0.9px at 62% 42%, rgba(214, 232, 255, 0.9), transparent);
+			radial-gradient(circle 2.7px at 22% 34%, rgba(255, 255, 255, 0.95), transparent),
+			radial-gradient(circle 2.7px at 74% 14%, rgba(199, 220, 255, 0.9), transparent),
+			radial-gradient(circle 2.7px at 46% 72%, rgba(255, 255, 255, 0.85), transparent),
+			radial-gradient(circle 2.7px at 88% 58%, rgba(255, 236, 214, 0.85), transparent),
+			radial-gradient(circle 2.7px at 14% 90%, rgba(255, 255, 255, 0.8), transparent),
+			radial-gradient(circle 2.7px at 62% 42%, rgba(214, 232, 255, 0.9), transparent);
 		background-size: 440px 440px;
 		opacity: 0.75;
 		animation: drift-stars-mid 110s linear infinite;
@@ -203,10 +221,10 @@ const stylesheet = css`
 	.s3 {
 		--parallax-distance: -560px;
 		background-image:
-			radial-gradient(circle 1.4px at 18% 26%, rgba(255, 255, 255, 1), transparent),
-			radial-gradient(circle 1.2px at 64% 68%, rgba(196, 166, 255, 0.95), transparent),
-			radial-gradient(circle 1.3px at 86% 22%, rgba(255, 236, 214, 0.95), transparent),
-			radial-gradient(circle 1.1px at 34% 86%, rgba(125, 211, 252, 0.9), transparent);
+			radial-gradient(circle 4.2px at 18% 26%, rgba(255, 255, 255, 1), transparent),
+			radial-gradient(circle 3.6px at 64% 68%, rgba(196, 166, 255, 0.95), transparent),
+			radial-gradient(circle 3.9px at 86% 22%, rgba(255, 236, 214, 0.95), transparent),
+			radial-gradient(circle 3.3px at 34% 86%, rgba(125, 211, 252, 0.9), transparent);
 		background-size: 680px 680px;
 		opacity: 0.9;
 		animation: twinkle 9s ease-in-out infinite alternate;
