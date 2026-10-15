@@ -1,3 +1,4 @@
+import { createSignal } from 'thunderous';
 import { resolveMotion } from './motion';
 import { safeTry } from './result';
 import { routes, routeIndex } from './routes';
@@ -9,21 +10,12 @@ export const angleFor = (index: number): number => index * ITEM_SPREAD - MAX_ROT
 export const ORBIT_ROTATION = 'orbit:rotation';
 export type OrbitRotationEvent = CustomEvent<{ rotation: number; source: 'interaction' | 'navigation' }>;
 
-/** Reads the angle retained across CSR replacements. */
-export const readOrbitRotation = (fallback: number): number => {
-	const value = document.documentElement.style.getPropertyValue('--orbit-rotation');
-	const rotation = Number(value);
-	return value.trim() !== '' && Number.isFinite(rotation) ? rotation : fallback;
-};
+export const [orbitRotation, setOrbitRotation] = createSignal(0);
 
 /** Keeps navigation centering alive while the view replaces its nav component. */
 export const startOrbitPosition = (): (() => void) => {
-	// The retained angle is read by JS; inheriting it would restyle the entire page on every frame.
-	safeTry(() =>
-		CSS.registerProperty({ name: '--orbit-rotation', syntax: '<number>', inherits: false, initialValue: '0' }),
-	);
 	const navigation = (window as unknown as { navigation?: EventTarget }).navigation;
-	let rotation = -angleFor(Math.max(0, routeIndex(location.pathname)));
+	const initial = -angleFor(Math.max(0, routeIndex(location.pathname)));
 	let journey: { from: number; target: number; start: number } | null = null;
 	const frames = createFrameScheduler((time) => {
 		if (journey === null) return;
@@ -32,22 +24,20 @@ export const startOrbitPosition = (): (() => void) => {
 		if (progress < 1) frames.request();
 		else journey = null;
 	});
-	document.documentElement.style.setProperty('--orbit-rotation', String(rotation));
+	setOrbitRotation(initial);
 	const stop = () => {
 		frames.cancel();
 		journey = null;
 	};
 	const publish = (next: number) => {
-		rotation = next;
-		document.documentElement.style.setProperty('--orbit-rotation', String(rotation));
-		document.dispatchEvent(new CustomEvent(ORBIT_ROTATION, { detail: { rotation, source: 'navigation' } }));
+		setOrbitRotation(next);
+		document.dispatchEvent(new CustomEvent(ORBIT_ROTATION, { detail: { rotation: next, source: 'navigation' } }));
 	};
 	const onRotation = (event: Event) => {
 		const detail = (event as OrbitRotationEvent).detail;
 		if (detail.source !== 'interaction' || !Number.isFinite(detail.rotation)) return;
 		stop();
-		rotation = detail.rotation;
-		document.documentElement.style.setProperty('--orbit-rotation', String(rotation));
+		setOrbitRotation(detail.rotation);
 	};
 	const onNavigate = (event: Event) => {
 		const url = (event as Event & { destination?: { url?: string } }).destination?.url;
@@ -62,7 +52,7 @@ export const startOrbitPosition = (): (() => void) => {
 			publish(target);
 			return;
 		}
-		journey = { from: rotation, target, start: performance.now() };
+		journey = { from: orbitRotation(), target, start: performance.now() };
 		frames.request();
 	};
 	document.addEventListener(ORBIT_ROTATION, onRotation);

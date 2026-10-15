@@ -1,6 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import { routeIndex } from '../../src/routes.ts';
 
+const readVoyage = (page: Page) =>
+	page.evaluate(async () => {
+		const path = '/nav-direction.js';
+		const state = (await import(path)) as { voyage: () => number };
+		return state.voyage();
+	});
+
 test('as a mobile visitor, I can read the subtitle below the motion control and change my motion preference', async ({
 	page,
 }) => {
@@ -63,9 +70,12 @@ test('as a visitor, I can open every main destination directly and read its cont
 		['/blog', 'Ideas with a playground'],
 		['/contact', 'Want to talk about developer tools'],
 	] as const) {
-		await page.goto(path);
+		const response = await page.goto(path);
 		await expect(page.locator('x-page')).toContainText(text);
-		await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex(path)));
+		await expect(page.locator('html')).not.toHaveAttribute('style');
+		if (response === null) throw new Error('Direct page response is missing');
+		expect(await response.text()).not.toContain('calc(NaN');
+		await expect.poll(() => readVoyage(page)).toBe(routeIndex(path));
 		expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 	}
 });
@@ -92,13 +102,13 @@ test('as a visitor, I can follow a breadcrumb home and go back while keeping my 
 	});
 	await page.locator('x-crumb').filter({ hasText: 'Jonathan DeWitt' }).click();
 	await expect(page).toHaveURL(/\/$/);
-	await expect(page.locator('html')).toHaveCSS('--voyage', '0');
+	await expect.poll(() => readVoyage(page)).toBe(0);
 	expect(await page.evaluate(() => document.querySelector('x-cosmos') === Reflect.get(window, 'originalCosmos'))).toBe(
 		true,
 	);
 	await page.goBack();
 	await expect(page).toHaveURL(/\/about\/?$/);
-	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/about')));
+	await expect.poll(() => readVoyage(page)).toBe(routeIndex('/about'));
 	await expect(page.locator('html')).toHaveAttribute('data-nav-direction', 'forward');
 	expect(await page.evaluate(() => document.querySelector('x-cosmos') === Reflect.get(window, 'originalCosmos'))).toBe(
 		true,
@@ -204,7 +214,7 @@ test('as a hiring reviewer, I can find the portfolio from the résumé page', as
 	await expect(page.locator('x-blockquote x-link[href="mailto:jon@jonathandewitt.dev"]')).toContainText('emailing me');
 	await page.locator('x-link[href="/work"]').click();
 	await expect(page).toHaveURL(/\/work\/?$/);
-	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/work')));
+	await expect.poll(() => readVoyage(page)).toBe(routeIndex('/work'));
 	await expect(page.locator('x-project-list')).toBeVisible();
 	await expect
 		.poll(() => page.evaluate(() => Reflect.get(window, 'resumeTransitionAnimations')))
@@ -223,7 +233,7 @@ test('as a reader, I can reach the blog from the main navigation using the keybo
 	for (let index = 0; index < routeIndex('/blog'); index++) await page.keyboard.press('Tab');
 	await page.keyboard.press('Enter');
 	await expect(page).toHaveURL(/\/blog\/?$/);
-	await expect(page.locator('html')).toHaveCSS('--voyage', String(routeIndex('/blog')));
+	await expect.poll(() => readVoyage(page)).toBe(routeIndex('/blog'));
 	await expect(page.locator('x-content[view-transition-name="content"]')).toContainText('Ideas with a playground.');
 });
 

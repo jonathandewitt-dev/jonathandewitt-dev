@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 
+const readRotation = (page: Page) =>
+	page.evaluate(async () => {
+		const path = '/orbit-position.js';
+		const state = (await import(path)) as { orbitRotation: () => number };
+		return state.orbitRotation();
+	});
+
 test('as a visitor, fast drag input stays frame paced and retains my final position', async ({ page }) => {
 	await page.goto('/about');
 	const face = await orbitFace(page);
@@ -18,11 +25,9 @@ test('as a visitor, fast drag input stays frame paced and retains my final posit
 	const frames = await page.evaluate(() => Reflect.get(window, 'dragFrames') as number[]);
 	const elapsed = (frames.at(-1) ?? 0) - (frames[0] ?? 0);
 	expect(frames.length).toBeLessThanOrEqual(Math.ceil(elapsed / (1000 / 60)) + 4);
-	const rotation = await page.locator('html').evaluate((element) => element.style.getPropertyValue('--orbit-rotation'));
+	const rotation = await readRotation(page);
 	await page.waitForTimeout(100);
-	expect(await page.locator('html').evaluate((element) => element.style.getPropertyValue('--orbit-rotation'))).toBe(
-		rotation,
-	);
+	expect(await readRotation(page)).toBe(rotation);
 	expect(await page.evaluate(() => Reflect.get(window, 'orbitRequests'))).toEqual([]);
 	await page.mouse.move(face.x + face.box.width * 0.2, face.box.y - 10);
 	await page.mouse.click(face.x, face.y);
@@ -121,9 +126,7 @@ test('as a visitor, the orbit smoothly centers my destination through the page r
 	await page.locator('x-link[href="/work"]').click();
 	await expect(page).toHaveURL(/\/work\/?$/);
 	await expect(page.locator('x-project-list')).toBeVisible();
-	await expect
-		.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--orbit-rotation')))
-		.toBe('-18');
+	await expect.poll(() => readRotation(page)).toBe(-18);
 	const frames = await page.evaluate(
 		() => Reflect.get(window, 'centeringFrames') as { rotation: number; replaced: boolean }[],
 	);

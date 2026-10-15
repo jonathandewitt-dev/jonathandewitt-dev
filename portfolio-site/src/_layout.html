@@ -1,7 +1,36 @@
 <!-- Since this file begins with an underscore, it will be excluded from the output. -->
 <!-- This markup will only be rendered if a page includes it with <?layout href="_layout.html"> -->
-<html lang="en" expr:style="`--voyage: ${Math.max(0, routeIndex(pathname))}`">
+<html lang="en">
 	<head>
+		<script server>
+			import { getMeta } from 'thunderous-server';
+			import { routeIndex } from './routes';
+			import { setVoyage } from './nav-direction';
+
+			// This makes some handy data available to the template, like breadcrumbs
+			const meta = getMeta();
+			setVoyage(Math.max(0, routeIndex(meta.pathname)));
+			const headings = {
+				'/': 'Jonathan DeWitt',
+				'/about': 'About Me',
+				'/work': 'My Work',
+				'/resume': 'Resume',
+				'/blog': 'Blog',
+				'/contact': 'Contact Me',
+			};
+			const heading = headings[meta.pathname] ?? meta.title;
+			export default {
+				...meta,
+				routeIndex,
+				title: meta.pathname === '/' ? '' : heading,
+				heading,
+				breadcrumbItems: meta.breadcrumbs.map((crumb, index) => ({
+					...crumb,
+					name: index === meta.breadcrumbs.length - 1 ? heading : crumb.name,
+					current: index === meta.breadcrumbs.length - 1 ? 'page' : 'false',
+				})),
+			};
+		</script>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta
@@ -70,33 +99,5 @@
 		</t-view>
 
 		<script isomorphic src="/component-registry.ts"></script>
-
-		<script server>
-			import { getMeta } from 'thunderous-server';
-			import { routeIndex } from './routes';
-
-			// This makes some handy data available to the template, like breadcrumbs
-			const meta = getMeta();
-			const headings = {
-				'/': 'Jonathan DeWitt',
-				'/about': 'About Me',
-				'/work': 'My Work',
-				'/resume': 'Resume',
-				'/blog': 'Blog',
-				'/contact': 'Contact Me',
-			};
-			const heading = headings[meta.pathname] ?? meta.title;
-			export default {
-				...meta,
-				routeIndex,
-				title: meta.pathname === '/' ? '' : heading,
-				heading,
-				breadcrumbItems: meta.breadcrumbs.map((crumb, index) => ({
-					...crumb,
-					name: index === meta.breadcrumbs.length - 1 ? heading : crumb.name,
-					current: index === meta.breadcrumbs.length - 1 ? 'page' : 'false',
-				})),
-			};
-		</script>
 	</body>
 </html>

@@ -13,12 +13,6 @@
 
 	/* 1 travels toward the end of the nav, -1 back toward its start. See nav-direction.ts. */
 	--nav-dir: 1;
-
-	/* How long a navigation lasts, in milliseconds, shared by everything that moves with one. */
-	--nav-duration: 1080;
-
-	/* The viewer's position in space, published per route by nav-direction.ts. */
-	--voyage: 0;
 }
 
 :root[data-nav-direction='back'] {

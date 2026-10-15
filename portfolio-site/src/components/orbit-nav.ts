@@ -1,11 +1,18 @@
-import { createSignal, css, customElement, html } from 'thunderous';
+import { css, customElement, html } from 'thunderous';
 import { MOTION_CHANGE, resolveMotion } from '../motion';
 import { focusRing } from '../styles';
 import { safeTry } from '../result';
 import { NAV_REQUEST } from '../navigation-request';
 import { moveOrbitGesture, finishOrbitGesture, type OrbitGesture } from '../orbit-gesture';
 import { routes as destinations, routeIndex } from '../routes';
-import { MAX_ROTATION, angleFor, ORBIT_ROTATION, readOrbitRotation, type OrbitRotationEvent } from '../orbit-position';
+import {
+	MAX_ROTATION,
+	angleFor,
+	ORBIT_ROTATION,
+	orbitRotation as rotation,
+	setOrbitRotation,
+	type OrbitRotationEvent,
+} from '../orbit-position';
 import { createFrameScheduler } from '../frame-scheduler';
 
 const HOVER_TRAVEL_FRACTION = 0.4;
@@ -13,12 +20,7 @@ const HOVER_TRAVEL_FRACTION = 0.4;
 export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
 	adoptStyleSheet(focusRing);
 	adoptStyleSheet(stylesheet);
-	const [rotationStyle, setRotationStyle] = createSignal('0deg');
-	adoptStyleSheet(css`
-		nav[data-enhanced] .ring {
-			transform: rotateY(${rotationStyle});
-		}
-	`);
+	adoptStyleSheet(rotationStyles);
 	let cleanup = () => {};
 
 	connectedCallback(() => {
@@ -31,13 +33,12 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		const links = Array.from(root.querySelectorAll<HTMLAnchorElement>('.nav-link'));
 		if (nav === null || menu === null || menuToggle === null || stage === null) return;
 		const initial = Math.max(0, routeIndex(location.pathname));
-		let rotation = readOrbitRotation(-angleFor(initial));
 		let press: { kind: 'mouse' | 'touch'; identifier: number; gesture: OrbitGesture } | null = null;
 		let activating = false;
 		let modifiedRelease: HTMLAnchorElement | null = null;
 		let hover: { x: number; rotation: number } | null = null;
 		let hovering = false;
-		let hoverTarget = rotation;
+		let hoverTarget = rotation();
 		let hoverTime = 0;
 		let stageWidth = stage.getBoundingClientRect().width;
 		const resizeObserver = new ResizeObserver(() => {
@@ -46,11 +47,9 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		resizeObserver.observe(stage);
 		const desktop = window.matchMedia('(min-width: 48rem)');
 
-		const paint = (next: number, publish = true) => {
-			rotation = next;
-			setRotationStyle(`${rotation}deg`);
-			if (publish)
-				document.dispatchEvent(new CustomEvent(ORBIT_ROTATION, { detail: { rotation, source: 'interaction' } }));
+		const paint = (next: number) => {
+			setOrbitRotation(next);
+			document.dispatchEvent(new CustomEvent(ORBIT_ROTATION, { detail: { rotation: next, source: 'interaction' } }));
 		};
 		const itemAt = (x: number, y: number): number | null => {
 			const element = root.elementFromPoint(x, y);
@@ -66,7 +65,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		const animateHover = (time: number) => {
 			const elapsed = Math.max(0, time - hoverTime);
 			hoverTime = time;
-			const next = rotation + (hoverTarget - rotation) * (1 - Math.exp(-elapsed / 60));
+			const next = rotation() + (hoverTarget - rotation()) * (1 - Math.exp(-elapsed / 60));
 			if (Math.abs(hoverTarget - next) < 0.02) {
 				paint(hoverTarget);
 				hovering = false;
@@ -81,7 +80,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		});
 		const hoverMove = (event: MouseEvent) => {
 			if (press !== null || event.buttons !== 0 || !nav.hasAttribute('data-enhanced')) return;
-			if (hover === null) hover = { x: event.clientX, rotation };
+			if (hover === null) hover = { x: event.clientX, rotation: rotation() };
 			if (stageWidth <= 0) return;
 			const delta = event.clientX - hover.x;
 			hoverTarget = Math.max(
@@ -112,7 +111,6 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 			if (persistentMenu && focused === menuToggle) links[initial]?.focus({ preventScroll: true });
 			else if (!persistentMenu && focused !== null && stage.contains(focused))
 				menuToggle.focus({ preventScroll: true });
-			paint(rotation, false);
 		};
 		const closeMenuOnEscape = (event: KeyboardEvent) => {
 			if (event.key !== 'Escape' || !menu.open || nav.hasAttribute('data-persistent-menu')) return;
@@ -128,13 +126,12 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 			const detail = (event as OrbitRotationEvent).detail;
 			if (detail.source !== 'navigation') return;
 			stopHover();
-			paint(detail.rotation, false);
 		};
 		const begin = (kind: 'mouse' | 'touch', identifier: number, x: number, y: number) => {
 			cancel();
 			modifiedRelease = null;
 			stage.setAttribute('data-interacting', '');
-			paint(rotation);
+			paint(rotation());
 			press = {
 				kind,
 				identifier,
@@ -142,8 +139,8 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 					origin: itemAt(x, y),
 					startX: x,
 					startY: y,
-					startRotation: rotation,
-					rotation,
+					startRotation: rotation(),
+					rotation: rotation(),
 					cancelled: false,
 					dragging: false,
 				},
@@ -162,7 +159,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 					limit: MAX_ROTATION,
 				}),
 			};
-			if (nav.hasAttribute('data-enhanced') && press.gesture.rotation !== rotation) dragFrames.request();
+			if (nav.hasAttribute('data-enhanced') && press.gesture.rotation !== rotation()) dragFrames.request();
 		};
 		const activate = (link: HTMLAnchorElement) => {
 			const unhandled = link.dispatchEvent(
@@ -177,7 +174,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		const release = (x: number, y: number, modified: boolean) => {
 			if (press === null) return;
 			move(x, y);
-			if (nav.hasAttribute('data-enhanced') && press.gesture.rotation !== rotation) paint(press.gesture.rotation);
+			if (nav.hasAttribute('data-enhanced') && press.gesture.rotation !== rotation()) paint(press.gesture.rotation);
 			const destination = finishOrbitGesture(press.gesture, itemAt(x, y));
 			cancel();
 			const link = destination === null ? undefined : links[destination];
@@ -605,5 +602,11 @@ const stylesheet = css`
 			filter: blur(24px);
 			pointer-events: none;
 		}
+	}
+`;
+
+const rotationStyles = css`
+	nav[data-enhanced] .ring {
+		transform: rotateY(${rotation}deg);
 	}
 `;

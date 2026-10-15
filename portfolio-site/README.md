@@ -99,8 +99,8 @@ before inserting untrusted content; do not assume server expression handling mak
 
 ## Application architecture
 
-Three app-level concerns publish their state to the document rather than exposing it to callers. Nothing
-imports them in order to be affected by them, so components stay independent of one another.
+App-level services own shared navigation state. Components import their signals and bind them directly
+to constructed stylesheets; components do not read or mutate another component’s state.
 
 ### Shared state
 
@@ -109,13 +109,12 @@ transitions travel left or right depending on whether a navigation moves toward 
 toward its start. The orbit nav, the header and footer link lists, and the transition direction all read it.
 
 `src/motion.ts` and `src/nav-direction.ts` are started once from `component-registry.ts`, behind a browser
-guard because that module is isomorphic. Each publishes two ways:
+guard because that module is isomorphic. Services initialize before elements mount.
 
-| Concern       | Attribute on `<html>` | Custom property             | Event on `document` |
-| ------------- | --------------------- | --------------------------- | ------------------- |
-| Motion        | `data-motion`         | `--motion`, `--motion-play` | `motion:change`     |
-| Nav direction | `data-nav-direction`  | `--nav-dir`                 | `nav:direction`     |
-| Voyage        | —                     | `--voyage`                  | —                   |
+Orbit rotation is the shared `orbitRotation` signal in `src/orbit-position.ts`. Voyage and measured
+transition timing are the `voyage` and `navigationDuration` signals in `src/nav-direction.ts`.
+These values are never stored in `<html>` styles. Motion and direction retain their HTML attributes
+and document events for pre-paint preference handling and native view-transition selectors.
 
 The primary navigation order is: Home → Blog → About Me → My Work → Resume → Contact Me.
 `/blog` introduces the future standalone post experiences. `/resume` links readers to the portfolio and explains
@@ -159,12 +158,10 @@ cancelled when an interaction ends or a component disconnects.
 
 The nav caches its stage width with a `ResizeObserver` instead of measuring on each movement. Once a
 press becomes a drag or is cancelled, it no longer hit-tests every intermediate pointer position.
-Rotation binds an instance-local signal directly to the ring's transform in a separate, one-rule
-constructed stylesheet. The static sheet remains shared; updating the rotation does not replace it.
-A dynamic stylesheet shared between instances would give them all the same rotation, so each nav owns
-its rotation sheet. The retained `--orbit-rotation` property on `<html>` is
-registered as non-inherited when supported: neither angle needs to restyle unrelated descendants on
-each frame.
+Rotation binds the shared `orbitRotation` signal directly to the ring's transform in a separate,
+one-rule constructed stylesheet. Both rotation and static stylesheets are shared across nav instances;
+all nav instances intentionally show the same retained angle. Updating that signal does not replace
+the larger static sheet or write to the document root.
 
 `x-orbit-nav` is supplied to the page's `navigation` slot from the layout. It uses the same controls on
 mouse and touch devices. Full motion enables the 3D ring; reduced motion collapses the same links into
@@ -191,9 +188,10 @@ clicks retain normal link behavior. Keyboard focus centers its destination immed
 so a pressed target cannot slide away while the browser waits to animate. Mouse focus does not recenter the ring
 during a press.
 
-`src/orbit-position.ts` retains the visible angle on the document and centers the destination over
+`src/orbit-position.ts` retains the visible angle in a shared signal and centers the destination over
 420ms when native navigation starts. Its animation survives CSR replacing the nav host: the incoming
-component begins at the current angle and follows the same `orbit:rotation` events. Hover, drag, or
+component binds to the same angle signal. The `orbit:rotation` event identifies interaction versus
+navigation updates so an interaction can interrupt centering. Hover, drag, or
 keyboard interaction interrupts centering from the visible position. Reduced motion centers immediately.
 
 Accepted ordinary activations emit the cancelable, composed `nav:request` event with `{ href }`.
@@ -218,7 +216,7 @@ through the public host and events, without opening closed shadow roots.
 
 ### Travelling between pages
 
-`--voyage` is the destination's index in `routes`, treated as a coordinate: each page sits at
+The `voyage` signal holds the destination's index in `routes`, treated as a coordinate: each page sits at
 its own point in space. `x-cosmos` transitions to that position and stays there, so a navigation
 carries the viewer somewhere new rather than returning to where it began. Navigating back
 retraces the same ground, because position reflects place rather than elapsed time.
@@ -248,14 +246,17 @@ Lazy loading lets the visible background load after layout while preventing deta
 CSR navigation from downloading another copy.
 
 Voyage begins on `view:transition-ready`, when CSR's content snapshots are ready to animate, rather than at
-link activation while the destination is still loading. `navigatesuccess` is also observed for fallback cases. `--nav-duration` is measured from
+link activation while the destination is still loading. `navigatesuccess` is also observed for fallback cases. `navigationDuration` is measured from
 the active content animations, including their delays (up to 1080ms), so scenery settles with
 the last incoming block. `--ease-voyage` combines the departure curve's initial
 control point with the arrival curve's final control point, accelerating into travel and
 slowing as the incoming content settles.
 
-The layout seeds `--voyage` during static generation so direct loads begin at their destination
-without an initial trip from home. The cosmos owns its theme. The page backdrop paints below the fixed cosmos,
+The layout's server entry seeds the shared `voyage` signal from page metadata before components
+render. Client services likewise initialize before elements mount, so static HTML and hydration start
+at the same destination without an initial trip from home or route-specific shell attributes.
+The cosmos binds `voyage` and `navigationDuration` directly into its travel stylesheet.
+The cosmos owns its theme. The page backdrop paints below the fixed cosmos,
 while its positioned content paints above it; keep the page wrapper free of a stacking context.
 
 Two things make that work, and both are easy to undo by accident:
@@ -267,8 +268,9 @@ Two things make that work, and both are easy to undo by accident:
   channels — `transform` on ambient drift, `translate` on scroll parallax — so the voyage is
   composed by nesting rather than by a third declaration on the same element.
 
-The custom properties are the important half: they inherit through shadow boundaries, so a component's
-internal stylesheet reacts to either concern without importing anything.
+The cosmos keeps static geometry in shared styles and binds the shared voyage signals in its travel
+stylesheet. That stylesheet is evaluated during each server render to capture the current page’s
+starting coordinate; all live instances follow the same shared signal.
 
 ### Motion preference
 

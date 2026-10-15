@@ -18,6 +18,17 @@ import { startNavDirection } from './nav-direction';
 import { startNavigationRequests } from './navigation-request';
 import { startOrbitPosition } from './orbit-position';
 
+/*
+ * Initialize shared state before elements mount so direct loads start at their destination.
+ * These services live for the whole page; the guard keeps browser APIs out of static generation.
+ */
+if (typeof window !== 'undefined') {
+	startMotion();
+	startNavDirection();
+	startNavigationRequests();
+	startOrbitPosition();
+}
+
 View.define('t-view');
 Page.define('x-page');
 Feature.define('x-feature');
@@ -39,15 +50,3 @@ DescriptionItem.define('x-description-item');
 
 ProjectList.define('x-project-list');
 ProjectItem.define('x-project-item');
-
-/*
- * App-level concerns are started here rather than from a component, so nothing has to import
- * them in order to be affected by them. They run for the life of the page, hence the discarded
- * teardowns. The guard is required because this module is isomorphic.
- */
-if (typeof window !== 'undefined') {
-	startMotion();
-	startNavDirection();
-	startNavigationRequests();
-	startOrbitPosition();
-}

@@ -1,13 +1,8 @@
+import { createSignal } from 'thunderous';
 import { routeIndex } from './routes';
 import { safeTry } from './result';
 
-/**
- * Which way a navigation travels through `routes`, published to the document for the page
- * transitions to read.
- *
- * See "Page transitions" in README.md. Nothing here runs at module scope, because this file is
- * reachable from the isomorphic component registry and is evaluated on the server too.
- */
+/** Navigation flags for native transitions, plus shared signals for scenery position and timing. */
 
 export type NavDirection = 'forward' | 'back';
 
@@ -16,11 +11,14 @@ export const NAV_DIRECTION = 'nav:direction';
 
 export type NavDirectionEvent = CustomEvent<{ direction: NavDirection }>;
 
+export const [voyage, setVoyage] = createSignal(0);
+export const [navigationDuration, setNavigationDuration] = createSignal(1080);
+
 type NavigateEventLike = Event & { destination?: { url?: string } };
 
 /** Publishes a route coordinate for persistent scenery to follow. */
 const publishVoyage = (index: number) => {
-	document.documentElement.style.setProperty('--voyage', String(Math.max(0, index)));
+	setVoyage(Math.max(0, index));
 };
 
 /**
@@ -65,7 +63,7 @@ export const startNavDirection = (): (() => void) => {
 			.map((animation) => animation.effect?.getComputedTiming().endTime ?? 0)
 			.filter((endTime): endTime is number => typeof endTime === 'number' && Number.isFinite(endTime));
 		if (endTimes.length > 0) {
-			document.documentElement.style.setProperty('--nav-duration', String(Math.max(...endTimes)));
+			setNavigationDuration(Math.max(...endTimes));
 		}
 		publishVoyage(routeIndex(location.pathname));
 	};

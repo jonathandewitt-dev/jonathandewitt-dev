@@ -1,11 +1,28 @@
 import { css, customElement, html } from 'thunderous';
 import { theme } from '../theme';
 import { routes } from '../routes';
+import { voyage, navigationDuration } from '../nav-direction';
 
 /** Persistent scenery shared by every route. See "Travelling between pages" in README.md. */
 export const Cosmos = customElement(({ adoptStyleSheet }) => {
 	adoptStyleSheet(theme);
 	adoptStyleSheet(stylesheet);
+	adoptStyleSheet(css`
+		.voyage,
+		.orion {
+			transition: transform calc(var(--motion) * ${navigationDuration} * 1ms) var(--ease-voyage);
+		}
+		.voyage {
+			transform: translate3d(calc(${voyage} * var(--voyage-step)), 0, 0);
+		}
+		.orion {
+			transform: translate3d(
+				calc(-40vw * ${voyage} / var(--voyage-stops)),
+				calc(-15vh * ${voyage} / var(--voyage-stops)),
+				0
+			);
+		}
+	`);
 	return html`
 		<img
 			class="orion"
@@ -60,11 +77,9 @@ const stylesheet = css`
 	.voyage,
 	.orion {
 		position: absolute;
-		transition: transform calc(var(--motion) * var(--nav-duration) * 1ms) var(--ease-voyage);
 	}
 	.voyage {
 		inset: 0;
-		transform: translate3d(calc(var(--voyage, 0) * var(--voyage-step)), 0, 0);
 	}
 	.orion {
 		/* Overscan reserves the entire route journey inside one photo, avoiding tiled seams. */
@@ -73,11 +88,6 @@ const stylesheet = css`
 		height: 130vh;
 		object-fit: cover;
 		opacity: 0.3;
-		transform: translate3d(
-			calc(-40vw * var(--voyage, 0) / var(--voyage-stops)),
-			calc(-15vh * var(--voyage, 0) / var(--voyage-stops)),
-			0
-		);
 	}
 	.clouds {
 		--voyage-step: -50vw;
