@@ -198,7 +198,7 @@ const stylesheet = css`
 		border-radius: 0.25rem;
 	}
 
-	/* Pinned so the control is reachable without scrolling to find it. */
+	/* Wide screens have room to keep this reachable while scrolling. */
 	.motion-toggle {
 		position: fixed;
 		top: 0.5rem;
@@ -257,6 +257,16 @@ const stylesheet = css`
 		translate: 0.875rem -50%;
 	}
 
+	@media (max-width: 27em) {
+		.page {
+			grid-template-rows: auto auto 1fr auto;
+		}
+		.motion-toggle {
+			position: static;
+			justify-self: start;
+			margin: 0.5rem 0.5rem 0;
+		}
+	}
 	@media (max-width: 40rem) {
 		header {
 			padding-inline: 1rem;
