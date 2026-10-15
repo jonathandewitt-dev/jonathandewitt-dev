@@ -1,4 +1,4 @@
-import { css, customElement, html } from 'thunderous';
+import { createSignal, css, customElement, html } from 'thunderous';
 import { MOTION_CHANGE, resolveMotion } from '../motion';
 import { focusRing } from '../styles';
 import { safeTry } from '../result';
@@ -6,12 +6,19 @@ import { NAV_REQUEST } from '../navigation-request';
 import { moveOrbitGesture, finishOrbitGesture, type OrbitGesture } from '../orbit-gesture';
 import { routes as destinations, routeIndex } from '../routes';
 import { MAX_ROTATION, angleFor, ORBIT_ROTATION, readOrbitRotation, type OrbitRotationEvent } from '../orbit-position';
+import { createFrameScheduler } from '../frame-scheduler';
 
 const HOVER_TRAVEL_FRACTION = 0.4;
 
 export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallback, disconnectedCallback }) => {
 	adoptStyleSheet(focusRing);
 	adoptStyleSheet(stylesheet);
+	const [rotationStyle, setRotationStyle] = createSignal('0deg');
+	adoptStyleSheet(css`
+		nav[data-enhanced] .ring {
+			transform: rotateY(${rotationStyle});
+		}
+	`);
 	let cleanup = () => {};
 
 	connectedCallback(() => {
@@ -29,14 +36,19 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		let activating = false;
 		let modifiedRelease: HTMLAnchorElement | null = null;
 		let hover: { x: number; rotation: number } | null = null;
-		let hoverFrame = 0;
+		let hovering = false;
 		let hoverTarget = rotation;
 		let hoverTime = 0;
+		let stageWidth = stage.getBoundingClientRect().width;
+		const resizeObserver = new ResizeObserver(() => {
+			stageWidth = stage.getBoundingClientRect().width;
+		});
+		resizeObserver.observe(stage);
 		const desktop = window.matchMedia('(min-width: 48rem)');
 
 		const paint = (next: number, publish = true) => {
 			rotation = next;
-			stage.style.setProperty('--rotation', `${rotation}deg`);
+			setRotationStyle(`${rotation}deg`);
 			if (publish)
 				document.dispatchEvent(new CustomEvent(ORBIT_ROTATION, { detail: { rotation, source: 'interaction' } }));
 		};
@@ -47,8 +59,8 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 			return index === -1 ? null : index;
 		};
 		const stopHover = () => {
-			cancelAnimationFrame(hoverFrame);
-			hoverFrame = 0;
+			hoverFrames.cancel();
+			hovering = false;
 			hover = null;
 		};
 		const animateHover = (time: number) => {
@@ -57,30 +69,35 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 			const next = rotation + (hoverTarget - rotation) * (1 - Math.exp(-elapsed / 60));
 			if (Math.abs(hoverTarget - next) < 0.02) {
 				paint(hoverTarget);
-				hoverFrame = 0;
+				hovering = false;
 			} else {
 				paint(next);
-				hoverFrame = requestAnimationFrame(animateHover);
+				hoverFrames.request();
 			}
 		};
+		const hoverFrames = createFrameScheduler(animateHover);
+		const dragFrames = createFrameScheduler(() => {
+			if (press !== null) paint(press.gesture.rotation);
+		});
 		const hoverMove = (event: MouseEvent) => {
 			if (press !== null || event.buttons !== 0 || !nav.hasAttribute('data-enhanced')) return;
 			if (hover === null) hover = { x: event.clientX, rotation };
-			const bounds = stage.getBoundingClientRect();
-			if (bounds.width <= 0) return;
+			if (stageWidth <= 0) return;
 			const delta = event.clientX - hover.x;
 			hoverTarget = Math.max(
 				-MAX_ROTATION,
-				Math.min(MAX_ROTATION, hover.rotation - (delta * 2 * MAX_ROTATION) / (bounds.width * HOVER_TRAVEL_FRACTION)),
+				Math.min(MAX_ROTATION, hover.rotation - (delta * 2 * MAX_ROTATION) / (stageWidth * HOVER_TRAVEL_FRACTION)),
 			);
 			hover = { x: event.clientX, rotation: hoverTarget };
-			if (hoverFrame === 0) {
+			if (hovering === false) {
+				hovering = true;
 				hoverTime = performance.now();
-				hoverFrame = requestAnimationFrame(animateHover);
+				hoverFrames.request();
 			}
 		};
 		const cancel = () => {
 			stopHover();
+			dragFrames.cancel();
 			press = null;
 			stage.removeAttribute('data-interacting');
 		};
@@ -134,17 +151,18 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		};
 		const move = (x: number, y: number) => {
 			if (press === null) return;
+			const dragging = Math.hypot(x - press.gesture.startX, y - press.gesture.startY) >= 6;
 			press = {
 				...press,
 				gesture: moveOrbitGesture(press.gesture, {
 					x,
 					y,
-					item: itemAt(x, y),
-					width: stage.getBoundingClientRect().width,
+					item: press.gesture.cancelled || dragging ? null : itemAt(x, y),
+					width: stageWidth,
 					limit: MAX_ROTATION,
 				}),
 			};
-			if (nav.hasAttribute('data-enhanced')) paint(press.gesture.rotation);
+			if (nav.hasAttribute('data-enhanced') && press.gesture.rotation !== rotation) dragFrames.request();
 		};
 		const activate = (link: HTMLAnchorElement) => {
 			const unhandled = link.dispatchEvent(
@@ -159,6 +177,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		const release = (x: number, y: number, modified: boolean) => {
 			if (press === null) return;
 			move(x, y);
+			if (nav.hasAttribute('data-enhanced') && press.gesture.rotation !== rotation) paint(press.gesture.rotation);
 			const destination = finishOrbitGesture(press.gesture, itemAt(x, y));
 			cancel();
 			const link = destination === null ? undefined : links[destination];
@@ -272,6 +291,7 @@ export const OrbitNav = customElement(({ adoptStyleSheet, root, connectedCallbac
 		document.addEventListener(ORBIT_ROTATION, onRotation);
 		cleanup = () => {
 			cancel();
+			resizeObserver.disconnect();
 			menu.removeEventListener('keydown', closeMenuOnEscape);
 			navigation?.removeEventListener('navigate', closeMenuOnNavigation);
 			links.forEach((link) => {
@@ -351,7 +371,6 @@ const stylesheet = css`
 		   each link wider than its own slot and neighbours overlap. */
 		--radius: clamp(15rem, 38vw, 28rem);
 		--ribbon-height: 3.75rem;
-		--rotation: 0deg;
 		--pitch: 4deg;
 		color: var(--color-page-1-c);
 	}
@@ -515,7 +534,7 @@ const stylesheet = css`
 			border: 0;
 			border-radius: 0;
 			background: none;
-			transform: rotateY(var(--rotation));
+			transform: rotateY(0deg);
 		}
 		.stage[data-interacting] {
 			cursor: grabbing;

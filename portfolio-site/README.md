@@ -150,6 +150,22 @@ The supplemental block shares the primary text's animation timing.
 
 ### Orbit navigation
 
+Visual hover, drag, and navigation-centering updates share `src/frame-scheduler.ts`. It keeps one timer
+and one animation-frame request pending at most, spacing updates to approximately 60 per second even
+on high-refresh displays. Movement handlers retain the latest input; mouse/touch release applies its
+final position immediately. Press ownership, leave cancellation, and touch `preventDefault()` remain
+synchronous, so rate limiting cannot turn a cancelled gesture into a link activation. Pending work is
+cancelled when an interaction ends or a component disconnects.
+
+The nav caches its stage width with a `ResizeObserver` instead of measuring on each movement. Once a
+press becomes a drag or is cancelled, it no longer hit-tests every intermediate pointer position.
+Rotation binds an instance-local signal directly to the ring's transform in a separate, one-rule
+constructed stylesheet. The static sheet remains shared; updating the rotation does not replace it.
+A dynamic stylesheet shared between instances would give them all the same rotation, so each nav owns
+its rotation sheet. The retained `--orbit-rotation` property on `<html>` is
+registered as non-inherited when supported: neither angle needs to restyle unrelated descendants on
+each frame.
+
 `x-orbit-nav` is supplied to the page's `navigation` slot from the layout. It uses the same controls on
 mouse and touch devices. Full motion enables the 3D ring; reduced motion collapses the same links into
 a native hamburger disclosure below 48rem (768px at the default font size). At that breakpoint the
@@ -213,6 +229,12 @@ nebulae with varied arrangements; the first retains the original composition. Re
 with complementary horizontal masks to blend their clouds across boundaries without hard cuts. Depth carriers
 travel 35, 65, and 100vw per route for stars, and 50vw for clouds. Scroll parallax composes
 independently, with the foreground moving up to 560px over the page's scroll range.
+
+Scroll parallax uses CSS scroll timelines; there are no JavaScript scroll listeners to throttle.
+Each star surface reserves only its depth's travel distance and drift/scroll overscan, rather than
+allocating the foreground's full area to every depth. Off-screen cloud sectors use
+`content-visibility: auto` so the browser can skip rendering distant regions. These bounds preserve
+the repeating tile size, star density, and route coordinates.
 
 The deepest layer uses responsive `src/assets/orion-nebula-*.webp` images beneath the gradient nebulae
 and stars. The image has 30% opacity inside the cosmos host's 50% opacity. One photo covers a 140vw by 130vh surface, panning a total of 40vw horizontally and

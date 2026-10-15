@@ -1,6 +1,7 @@
 import { resolveMotion } from './motion';
 import { safeTry } from './result';
 import { routes, routeIndex } from './routes';
+import { createFrameScheduler } from './frame-scheduler';
 
 const ITEM_SPREAD = 36;
 export const MAX_ROTATION = ((routes.length - 1) * ITEM_SPREAD) / 2;
@@ -17,13 +18,24 @@ export const readOrbitRotation = (fallback: number): number => {
 
 /** Keeps navigation centering alive while the view replaces its nav component. */
 export const startOrbitPosition = (): (() => void) => {
+	// The retained angle is read by JS; inheriting it would restyle the entire page on every frame.
+	safeTry(() =>
+		CSS.registerProperty({ name: '--orbit-rotation', syntax: '<number>', inherits: false, initialValue: '0' }),
+	);
 	const navigation = (window as unknown as { navigation?: EventTarget }).navigation;
 	let rotation = -angleFor(Math.max(0, routeIndex(location.pathname)));
-	let frame = 0;
+	let journey: { from: number; target: number; start: number } | null = null;
+	const frames = createFrameScheduler((time) => {
+		if (journey === null) return;
+		const progress = resolveMotion() === 'reduced' ? 1 : Math.min(1, Math.max(0, (time - journey.start) / 420));
+		publish(journey.from + (journey.target - journey.from) * (1 - (1 - progress) ** 3));
+		if (progress < 1) frames.request();
+		else journey = null;
+	});
 	document.documentElement.style.setProperty('--orbit-rotation', String(rotation));
 	const stop = () => {
-		cancelAnimationFrame(frame);
-		frame = 0;
+		frames.cancel();
+		journey = null;
 	};
 	const publish = (next: number) => {
 		rotation = next;
@@ -50,14 +62,8 @@ export const startOrbitPosition = (): (() => void) => {
 			publish(target);
 			return;
 		}
-		const from = rotation;
-		const start = performance.now();
-		const animate = (time: number) => {
-			const progress = resolveMotion() === 'reduced' ? 1 : Math.min(1, Math.max(0, (time - start) / 420));
-			publish(from + (target - from) * (1 - (1 - progress) ** 3));
-			frame = progress < 1 ? requestAnimationFrame(animate) : 0;
-		};
-		frame = requestAnimationFrame(animate);
+		journey = { from: rotation, target, start: performance.now() };
+		frames.request();
 	};
 	document.addEventListener(ORBIT_ROTATION, onRotation);
 	navigation?.addEventListener('navigate', onNavigate);

@@ -1,5 +1,34 @@
 import { expect, test, type Page } from '@playwright/test';
 
+test('as a visitor, fast drag input stays frame paced and retains my final position', async ({ page }) => {
+	await page.goto('/about');
+	const face = await orbitFace(page);
+	await recordRequests(page);
+	await page.evaluate(() => {
+		Reflect.set(window, 'dragFrames', []);
+		document.addEventListener('orbit:rotation', (event) => {
+			if ((event as CustomEvent<{ source: string }>).detail.source !== 'interaction') return;
+			(Reflect.get(window, 'dragFrames') as number[]).push(performance.now());
+		});
+	});
+	await page.mouse.move(face.x, face.y);
+	await page.mouse.down();
+	await page.mouse.move(face.x + face.box.width * 0.2, face.y, { steps: 60 });
+	await page.mouse.up();
+	const frames = await page.evaluate(() => Reflect.get(window, 'dragFrames') as number[]);
+	const elapsed = (frames.at(-1) ?? 0) - (frames[0] ?? 0);
+	expect(frames.length).toBeLessThanOrEqual(Math.ceil(elapsed / (1000 / 60)) + 4);
+	const rotation = await page.locator('html').evaluate((element) => element.style.getPropertyValue('--orbit-rotation'));
+	await page.waitForTimeout(100);
+	expect(await page.locator('html').evaluate((element) => element.style.getPropertyValue('--orbit-rotation'))).toBe(
+		rotation,
+	);
+	expect(await page.evaluate(() => Reflect.get(window, 'orbitRequests'))).toEqual([]);
+	await page.mouse.move(face.x + face.box.width * 0.2, face.box.y - 10);
+	await page.mouse.click(face.x, face.y);
+	await expect(page).toHaveURL(/\/blog\/?$/);
+});
+
 /** Locates the visible face through the component's public host, without opening its shadow root. */
 const orbitFace = async (page: Page) => {
 	await page.locator('x-orbit-nav').scrollIntoViewIfNeeded();

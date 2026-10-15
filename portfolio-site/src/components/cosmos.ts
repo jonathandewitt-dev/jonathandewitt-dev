@@ -39,8 +39,8 @@ export const Cosmos = customElement(({ adoptStyleSheet }) => {
 				`,
 			)}
 		</div>
-		<div class="voyage v1" style="--field-width: ${routes.length * 100}%"><div class="stars s1"></div></div>
-		<div class="voyage v2" style="--field-width: ${routes.length * 100}%"><div class="stars s2"></div></div>
+		<div class="voyage v1" style="--field-width: ${100 + (routes.length - 1) * 35}%"><div class="stars s1"></div></div>
+		<div class="voyage v2" style="--field-width: ${100 + (routes.length - 1) * 65}%"><div class="stars s2"></div></div>
 		<div class="voyage v3" style="--field-width: ${routes.length * 100}%"><div class="stars s3"></div></div>
 		<div class="vignette"></div>
 	`;
@@ -84,6 +84,7 @@ const stylesheet = css`
 	}
 	/* Overlapping masks soften region boundaries without stretching the viewport-sized scenery. */
 	.sector {
+		content-visibility: auto;
 		position: absolute;
 		top: -100vh;
 		width: 150%;
@@ -197,11 +198,12 @@ const stylesheet = css`
 		top: -20%;
 		left: -20%;
 		width: calc(var(--field-width) + 40vw);
-		height: calc(140vh + 560px);
+		height: calc(140vh - var(--parallax-distance) + var(--drift-overflow, 0px));
 		will-change: transform;
 		animation-play-state: var(--motion-play);
 	}
 	.s1 {
+		--drift-overflow: 140px;
 		--parallax-distance: -35px;
 		background-image:
 			radial-gradient(circle 1.5px at 12% 18%, rgba(255, 255, 255, 0.9), transparent),
@@ -218,6 +220,7 @@ const stylesheet = css`
 		animation-play-state: var(--motion-play);
 	}
 	.s2 {
+		--drift-overflow: 220px;
 		/* Preserve the initial tile phase while reserving room for rightward drift on narrow screens. */
 		left: calc(-20% - 440px);
 		width: calc(var(--field-width) + 40vw + 440px);
