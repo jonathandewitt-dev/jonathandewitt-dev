@@ -14,6 +14,7 @@ as the Vercel project root so its install override and patch files are included.
 | `pnpm install --frozen-lockfile` | Install the locked dependencies                           |
 | `pnpm dev`                       | Start the Thunderous development server, backed by Vite   |
 | `pnpm build`                     | Generate the static site in `dist/`                       |
+| `pnpm optimize:images`           | Regenerate responsive WebP thumbnails and Orion images    |
 | `pnpm start`                     | Serve the existing `dist/` with `serve`; build first      |
 | `pnpm test`                      | Run unit, Storybook component, and Playwright E2E tests   |
 | `pnpm test:unit`                 | Run native Node TypeScript tests with coverage thresholds |
@@ -128,6 +129,18 @@ and canonical links are curated in `src/blog/index.html`, newest first. These ar
 feed. Reuse `x-project-list`/`x-project-item` for the cards: `image` is optional, and `actiontext` customizes
 the action label while existing project cards keep “Visit project.”
 
+Project cards accept `imagesrcset` alongside the fallback `image` URL. `imagecardsrcset` supplies the
+desktop `<picture>` source: crops prepared at 192×160, 384×320, and 576×480 match the 12rem-wide thumbnail
+at standard, 2×, and 3× pixel density. Desktop crops use lossless WebP to preserve thin logo lettering.
+Mobile sources are cropped to 16:9 at 384, 768, and up to 1152 pixels wide. Resizing uses Lanczos filtering
+and mild sharpening before WebP encoding. The optimizer removes obsolete generated project thumbnails.
+Original project images and the Orion JPEG live in `_image-sources/`, outside the deployed source tree.
+Run `pnpm optimize:images` after replacing them; commit the resulting WebP files in `src/assets/`.
+Image conversion is a development step and does not run during deployment.
+
+At 27em and below, the motion toggle occupies its own row above the header so it cannot cover the subtitle.
+On wider screens it remains fixed in the top-left corner.
+
 Transitions require an explicit `view-transition-name` attribute in HTML. Supported identities are
 `heading`, `content`, `feature`, and `supplement`; the document stylesheet maps these to the corresponding
 `page-*` snapshot names. Each identity must occur at most once per rendered page. Mark the outer block
@@ -201,11 +214,16 @@ with complementary horizontal masks to blend their clouds across boundaries with
 travel 35, 65, and 100vw per route for stars, and 50vw for clouds. Scroll parallax composes
 independently, with the foreground moving up to 560px over the page's scroll range.
 
-The deepest layer is `src/assets/orion-nebula.jpg` at 20% opacity, beneath the gradient nebulae
-and stars. One photo covers a 140vw by 130vh surface, panning a total of 40vw horizontally and
+The deepest layer uses responsive `src/assets/orion-nebula-*.webp` images beneath the gradient nebulae
+and stars. The image has 30% opacity inside the cosmos host's 50% opacity. One photo covers a 140vw by 130vh surface, panning a total of 40vw horizontally and
 15vh vertically across the route list. It uses the same voyage timing as the other layers and
 stays fixed during scrolling. The oversized surface covers every route without repeating the
 photo, so it needs no tiled edges or feathered overlaps.
+Its decorative `<img>` offers 1280, 1920, 2560, and the full 3840-pixel source resolution. The `sizes`
+value accounts for both viewport dimensions: covering this surface needs an image width of at least
+`max(140vw, 231.112vh)` at its 16:9 aspect ratio. This avoids choosing a small image for a tall phone screen.
+Lazy loading lets the visible background load after layout while preventing detached HTML parsed during
+CSR navigation from downloading another copy.
 
 Voyage begins on `view:transition-ready`, when CSR's content snapshots are ready to animate, rather than at
 link activation while the destination is still loading. `navigatesuccess` is also observed for fallback cases. `--nav-duration` is measured from

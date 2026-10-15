@@ -12,6 +12,8 @@ export const ProjectList = customElement(({ adoptStyleSheet, internals, clientOn
 export const ProjectItem = customElement(({ adoptStyleSheet, attrSignals, internals, clientOnlyCallback }) => {
 	const [href] = attrSignals['href'] ?? createSignal(null);
 	const [image] = attrSignals['image'] ?? createSignal(null);
+	const [imageSrcset] = attrSignals['imagesrcset'] ?? createSignal(null);
+	const [imageCardSrcset] = attrSignals['imagecardsrcset'] ?? createSignal(null);
 	const [actionText] = attrSignals['actiontext'] ?? createSignal(null);
 	const actionLabel = derived(() => actionText() ?? 'Visit project');
 	const thumbnail = derived(() => {
@@ -19,7 +21,19 @@ export const ProjectItem = customElement(({ adoptStyleSheet, attrSignals, intern
 		return src === null || src === ''
 			? ''
 			: html`<div class="thumbnail">
-					<img src="${src}" alt="" width="400" height="300" loading="lazy" decoding="async" />
+					<picture>
+						<source media="(width > 36rem)" sizes="12rem" srcset="${imageCardSrcset}" />
+						<img
+							sizes="calc(100vw - 2rem)"
+							srcset="${imageSrcset}"
+							src="${src}"
+							alt=""
+							width="400"
+							height="300"
+							loading="lazy"
+							decoding="async"
+						/>
+					</picture>
 				</div>`;
 	});
 	clientOnlyCallback(() => {
@@ -73,6 +87,7 @@ const itemStyles = css`
 		box-shadow: var(--shadow-1);
 	}
 	.thumbnail {
+		position: relative;
 		display: grid;
 		place-items: center;
 		min-height: 10rem;
@@ -81,11 +96,14 @@ const itemStyles = css`
 		background: #e8ecf8;
 		overflow: hidden;
 	}
+	picture {
+		position: absolute;
+		inset: 0;
+	}
 	img {
 		display: block;
 		width: 100%;
 		height: 100%;
-		max-height: 12rem;
 		object-fit: cover;
 	}
 	:host([cover]) img {
@@ -131,9 +149,6 @@ const itemStyles = css`
 			aspect-ratio: 16 / 9;
 			min-height: 0;
 			border-radius: 1rem 1rem 0 0;
-		}
-		img {
-			max-height: none;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {

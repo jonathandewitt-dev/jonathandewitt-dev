@@ -7,7 +7,24 @@ export const Cosmos = customElement(({ adoptStyleSheet }) => {
 	adoptStyleSheet(theme);
 	adoptStyleSheet(stylesheet);
 	return html`
-		<div class="orion" style="--voyage-stops: ${Math.max(1, routes.length - 1)}"></div>
+		<img
+			class="orion"
+			style="--voyage-stops: ${Math.max(1, routes.length - 1)}"
+			loading="lazy"
+			sizes="max(140vw, 231.112vh)"
+			srcset="
+				/assets/orion-nebula-1280.webp 1280w,
+				/assets/orion-nebula-1920.webp 1920w,
+				/assets/orion-nebula-2560.webp 2560w,
+				/assets/orion-nebula-3840.webp 3840w
+			"
+			src="/assets/orion-nebula-3840.webp"
+			width="3840"
+			height="2160"
+			alt=""
+			decoding="async"
+			fetchpriority="low"
+		/>
 		<div class="voyage clouds">
 			${routes.map(
 				(_, index) => html`
@@ -54,7 +71,7 @@ const stylesheet = css`
 		inset: -7.5vh auto auto 0;
 		width: 140vw;
 		height: 130vh;
-		background: url('/assets/orion-nebula.jpg') center / cover no-repeat;
+		object-fit: cover;
 		opacity: 0.3;
 		transform: translate3d(
 			calc(-40vw * var(--voyage, 0) / var(--voyage-stops)),

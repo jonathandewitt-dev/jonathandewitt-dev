@@ -1,6 +1,51 @@
 import { expect, test, type Page } from '@playwright/test';
 import { routeIndex } from '../../src/routes.ts';
 
+test('as a mobile visitor, I can read the subtitle below the motion control and change my motion preference', async ({
+	page,
+}) => {
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
+	for (const width of [320, 432]) {
+		await page.setViewportSize({ width, height: 812 });
+		await page.goto('/');
+		const heading = await page.locator('x-page-heading').boundingBox();
+		if (heading === null) throw new Error('Page heading is missing');
+		expect(heading.y).toBeGreaterThanOrEqual(48);
+		await expect(page.locator('x-page-heading [slot="subtitle"]')).toBeVisible();
+	}
+	await page.keyboard.press('Tab');
+	await page.keyboard.press('Space');
+	await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+});
+
+test('as a desktop visitor, I receive a thumbnail prepared at the card’s displayed size', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 900 });
+	const thumbnail = page.waitForResponse((response) => response.url().includes('/stormy-cms-card-192.webp'));
+	await page.goto('/work');
+	await page.locator('x-project-item').filter({ hasText: 'Stormy CMS' }).scrollIntoViewIfNeeded();
+	expect((await thumbnail).ok()).toBe(true);
+});
+
+test('as a hiring reviewer, I can load lightweight project thumbnails while keeping the nebula across navigation', async ({
+	page,
+}) => {
+	const imageRequests: string[] = [];
+	const failedImages: string[] = [];
+	page.on('response', (response) => {
+		if (response.request().resourceType() !== 'image') return;
+		imageRequests.push(new URL(response.url()).pathname);
+		if (response.status() >= 400) failedImages.push(response.url());
+	});
+	await page.goto('/resume');
+	await page.locator('x-link[href="/work"]').click();
+	await expect(page).toHaveURL(/\/work\/?$/);
+	for (const card of await page.locator('x-project-item').all()) await card.scrollIntoViewIfNeeded();
+	await expect.poll(() => new Set(imageRequests.filter((path) => path.startsWith('/assets/projects/'))).size).toBe(5);
+	expect(imageRequests.filter((path) => path.includes('orion-nebula'))).toHaveLength(1);
+	expect(imageRequests.every((path) => path.endsWith('.webp'))).toBe(true);
+	expect(failedImages).toEqual([]);
+});
+
 const focusMainNavigation = async (page: Page) => {
 	for (let index = 0; index < 16; index++) {
 		await page.keyboard.press('Tab');
